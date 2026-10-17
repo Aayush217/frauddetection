@@ -72,7 +72,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ./frontend_clean
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: http://localhost:${BACKEND_PORT:-8008}

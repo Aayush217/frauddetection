@@ -30,7 +30,12 @@ ENV/
 
 # Node / Next.js
 node_modules/
+frontend/node_modules/
+frontend_clean/node_modules/
+test-py-next/
+test-next/
 .next/
+frontend_clean/.next/
 out/
 next-env.d.ts
 npm-debug.log*
