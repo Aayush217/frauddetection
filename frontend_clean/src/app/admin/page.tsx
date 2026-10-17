@@ -16,11 +16,12 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 
 export default function AdminPage() {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, login } = useAuth();
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [executing, setExecuting] = useState(false);
+  const [switching, setSwitching] = useState(false);
 
   const loadMetrics = async () => {
     try {
@@ -40,18 +41,46 @@ export default function AdminPage() {
     }
   }, [isAdmin]);
 
+  const handleElevateToAdmin = async () => {
+    try {
+      setSwitching(true);
+      await login("admin", "adminpassword123");
+      setActionMessage("Successfully authenticated as Administrator.");
+      await loadMetrics();
+    } catch (err: any) {
+      alert(`Admin login error: ${err.message}`);
+    } finally {
+      setSwitching(false);
+    }
+  };
+
   if (!isAdmin) {
     return (
-      <div className="flex h-96 flex-col items-center justify-center space-y-3 font-mono text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-risk-high/10 border border-risk-high/30 text-risk-high">
-          <Lock className="h-6 w-6" />
+      <div className="flex h-96 flex-col items-center justify-center space-y-4 font-mono text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-risk-high/10 border border-risk-high/30 text-risk-high">
+          <Lock className="h-7 w-7" />
         </div>
-        <h2 className="text-sm font-bold uppercase tracking-wider text-dark-text">
-          Access Denied: Administrator Credentials Required
-        </h2>
-        <p className="max-w-md text-xs text-dark-muted">
-          Your active token role is <span className="text-brand font-bold uppercase">{user?.role || "analyst"}</span>. Switch identity to the administrator account (<code>admin</code> / <code>adminpassword123</code>) to access system maintenance.
-        </p>
+        <div>
+          <h2 className="text-sm font-bold uppercase tracking-wider text-dark-text">
+            Access Restricted: Administrator Role Required
+          </h2>
+          <p className="max-w-md text-xs text-dark-muted mt-1">
+            Current active identity: <span className="text-brand font-bold uppercase">{user?.username || "Guest"}</span> (Role: <span className="text-amber-400 font-bold uppercase">{user?.role || "analyst"}</span>).
+          </p>
+        </div>
+
+        <button
+          onClick={handleElevateToAdmin}
+          disabled={switching}
+          className="flex items-center gap-2 rounded bg-brand px-4 py-2 text-xs font-bold text-dark-bg hover:bg-brand-hover shadow-lg transition-all disabled:opacity-50"
+        >
+          <ShieldCheck className="h-4 w-4" />
+          <span>{switching ? "AUTHENTICATING..." : "ELEVATE TO ADMIN (1-CLICK)"}</span>
+        </button>
+
+        <span className="text-[11px] text-dark-dim">
+          Default Viva Admin: <code>admin</code> / <code>adminpassword123</code>
+        </span>
       </div>
     );
   }
