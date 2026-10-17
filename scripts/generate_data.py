@@ -111,7 +111,7 @@ def run_generator(scale: float = 1.0, reset: bool = False, seed: int = 42, outpu
 
     num_accounts = max(50, int(5000 * scale))
     num_users = int(num_accounts * 0.85)
-    num_devices = int(num_accounts * 0.65)
+    num_devices = int(num_accounts * 1.05)
     num_ips = int(num_accounts * 0.55)
     num_cards = int(num_accounts * 0.75)
     num_normal_txns = max(200, int(20000 * scale))
@@ -228,17 +228,26 @@ def run_generator(scale: float = 1.0, reset: bool = False, seed: int = 42, outpu
     batch_insert(insert_devices_query, devices)
 
     # Link accounts to devices:
-    # Most accounts have 1 device. Some share 1 benign device (families/offices, 2-3 accounts).
+    # 1. Benign shared devices (families, offices: 2 to 3 accounts per device)
+    # 2. Individual devices (1 account per device)
+    # 3. Injected syndicate rings (4 to 10 accounts per device)
     device_links = []
-    # Benign shared devices (families/workstations sharing device with 2 or 3 accounts)
-    benign_shared_count = int(num_devices * 0.08)
-    for i in range(benign_shared_count):
-        dev_id = devices[i]["id"]
-        # Share among 2 to 3 accounts
+    dev_cursor = 0
+    acc_cursor = 0
+
+    # Create 150 benign shared devices (household/office noise with 2 or 3 accounts each)
+    num_benign = int(150 * scale)
+    for _ in range(num_benign):
+        if acc_cursor + 3 >= len(account_ids) - 300:
+            break
+        dev_id = devices[dev_cursor]["id"]
+        dev_cursor += 1
         share_size = rng.choice([2, 3])
-        chosen_accs = rng.sample(account_ids[: num_accounts - 200], share_size)
-        for acc_id in chosen_accs:
-            first = (now - timedelta(days=rng.randint(10, 50))).isoformat()
+        group = account_ids[acc_cursor : acc_cursor + share_size]
+        acc_cursor += share_size
+
+        for acc_id in group:
+            first = (now - timedelta(days=rng.randint(15, 60))).isoformat()
             last = (now - timedelta(days=rng.randint(0, 5))).isoformat()
             device_links.append({
                 "account_id": acc_id,
@@ -247,18 +256,20 @@ def run_generator(scale: float = 1.0, reset: bool = False, seed: int = 42, outpu
                 "last_seen": last,
             })
 
-    # Standard 1-to-1 account-device links for remaining
-    for idx, acc_id in enumerate(account_ids):
-        if idx >= benign_shared_count * 2:
-            dev_id = devices[idx % num_devices]["id"]
-            first = (now - timedelta(days=rng.randint(10, 100))).isoformat()
-            last = (now - timedelta(days=rng.randint(0, 5))).isoformat()
-            device_links.append({
-                "account_id": acc_id,
-                "device_id": dev_id,
-                "first_seen": first,
-                "last_seen": last,
-            })
+    # Remaining accounts get individual 1-to-1 devices
+    while acc_cursor < len(account_ids):
+        acc_id = account_ids[acc_cursor]
+        acc_cursor += 1
+        dev_id = devices[dev_cursor % len(devices)]["id"]
+        dev_cursor += 1
+        first = (now - timedelta(days=rng.randint(10, 100))).isoformat()
+        last = (now - timedelta(days=rng.randint(0, 5))).isoformat()
+        device_links.append({
+            "account_id": acc_id,
+            "device_id": dev_id,
+            "first_seen": first,
+            "last_seen": last,
+        })
 
     insert_used_device_query = """
     UNWIND $batch AS link
@@ -366,11 +377,11 @@ def run_generator(scale: float = 1.0, reset: bool = False, seed: int = 42, outpu
     # 6. Generate Normal Transactions (Diurnal Pattern)
     # -------------------------------------------------------------
     logger.info(f"Generating {num_normal_txns} Normal Transactions with diurnal curve...")
+    # Sample normal background transactions from non-fraud accounts (accounts 300 onwards)
+    normal_account_pool = account_ids[300:]
     normal_txns = []
-    # To avoid cycle creation in background noise, we partition accounts into stages or use random pairs
-    # with forward-in-time sequence
     for i in range(num_normal_txns):
-        src, dst = rng.sample(account_ids, 2)
+        src, dst = rng.sample(normal_account_pool, 2)
         amount = generate_realistic_amount(rng)
         ts = generate_diurnal_timestamp(start_history, now, rng).isoformat()
         normal_txns.append({

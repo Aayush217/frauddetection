@@ -129,6 +129,10 @@ async def health_check():
     }
 
 
+from app.api.detection import router as detection_router
+from app.api.analysis import router as analysis_router
+from app.api.rings import router as rings_router
+
 # Include Routers under /api
 app.include_router(auth_router, prefix="/api")
 app.include_router(accounts_router, prefix="/api")
@@ -137,6 +141,14 @@ app.include_router(ips_router, prefix="/api")
 app.include_router(cards_router, prefix="/api")
 app.include_router(transactions_router, prefix="/api")
 app.include_router(admin_router, prefix="/api")
+app.include_router(detection_router, prefix="/api")
+app.include_router(analysis_router, prefix="/api")
+app.include_router(rings_router, prefix="/api")
+
+# Also include directly at root to support spec paths like /detect/cycles or /rings
+app.include_router(detection_router)
+app.include_router(analysis_router)
+app.include_router(rings_router)
 
 
 if __name__ == "__main__":
