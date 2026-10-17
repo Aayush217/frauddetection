@@ -27,6 +27,21 @@ export default function LoginPage() {
     }
   };
 
+  const handleQuickLogin = async (u: string, p: string) => {
+    setUsername(u);
+    setPassword(p);
+    setError(null);
+    setSubmitting(true);
+    try {
+      await login(u, p);
+      router.push(u === "admin" ? "/admin" : "/");
+    } catch (err: any) {
+      setError(err.message || "Authentication failed. Check credentials.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const setDemoCredentials = (u: string, p: string) => {
     setUsername(u);
     setPassword(p);
