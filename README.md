@@ -254,7 +254,7 @@ frauddetection/
 │   │   └── lib/            # Type-safe API client and auth state management
 │   ├── tailwind.config.ts  # Executive light theme design tokens
 │   └── Dockerfile          # Next.js container specification
-├── docs/                   # Academic evaluation reports, data models, and viva defense guides
+├── docs/                   # Data model specifications and detection algorithm math
 ├── scripts/                # Synthetic data generator & accuracy evaluator
 ├── tests/                  # Pytest automated test suite
 └── docker-compose.yml      # Orchestration for Neo4j, Postgres, Backend, and Frontend
@@ -262,3 +262,7 @@ frauddetection/
 
 ---
 
+## Technical Specifications
+
+* **Labeled Property Graph Data Model:** [`docs/data-model.md`](docs/data-model.md)
+* **Detection Algorithms & Architecture:** [`docs/detection-algorithms.md`](docs/detection-algorithms.md)
