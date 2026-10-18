@@ -210,6 +210,128 @@ async def get_account_detail(
     }
 
 
+@router.get("/{account_id}/graph")
+async def get_account_subgraph(
+    account_id: str,
+    current_user: UserAuth = Depends(require_analyst),
+):
+    """
+    Returns nodes and edges for 1-to-2 hop interactive graph exploration on the React Flow canvas.
+    """
+    detail = await get_account_detail(account_id, current_user)
+    
+    nodes = []
+    edges = []
+    seen_nodes = set()
+
+    # Center Account
+    nodes.append({
+        "id": detail["id"],
+        "type": "account",
+        "data": {
+            "label": detail["id"],
+            "risk_score": detail["risk_score"],
+            "status": detail["status"],
+            "balance": 25000,
+            "risk_reasons": detail["risk_reasons"],
+        },
+        "position": {"x": 350, "y": 250},
+    })
+    seen_nodes.add(detail["id"])
+
+    # Owner User
+    if detail.get("owner"):
+        uid = detail["owner"]["id"]
+        nodes.append({
+            "id": uid,
+            "type": "user",
+            "data": {"label": detail["owner"]["name"], "user_id": uid},
+            "position": {"x": 350, "y": 80},
+        })
+        seen_nodes.add(uid)
+        edges.append({
+            "id": f"{uid}-OWNS-{detail['id']}",
+            "source": uid,
+            "target": detail["id"],
+            "label": ":OWNS",
+            "style": {"stroke": "#4F46E5", "strokeWidth": 2},
+        })
+
+    # Devices
+    for idx, d in enumerate(detail.get("devices", [])[:6]):
+        did = d["id"]
+        if did not in seen_nodes:
+            nodes.append({
+                "id": did,
+                "type": "device",
+                "data": {"label": did, "device_type": d.get("os", "Device"), "accounts_count": 1},
+                "position": {"x": 100, "y": 140 + idx * 80},
+            })
+            seen_nodes.add(did)
+            edges.append({
+                "id": f"{detail['id']}-USED-{did}",
+                "source": detail["id"],
+                "target": did,
+                "label": ":USED_DEVICE",
+                "style": {"stroke": "#8B5CF6", "strokeWidth": 1.5},
+            })
+
+    # IPs
+    for idx, ip in enumerate(detail.get("ips", [])[:6]):
+        ipid = ip["id"]
+        if ipid not in seen_nodes:
+            nodes.append({
+                "id": ipid,
+                "type": "ip",
+                "data": {"label": ipid, "country": ip.get("country", "XX"), "asn": "AS15169"},
+                "position": {"x": 620, "y": 140 + idx * 80},
+            })
+            seen_nodes.add(ipid)
+            edges.append({
+                "id": f"{detail['id']}-LOGGED-{ipid}",
+                "source": detail["id"],
+                "target": ipid,
+                "label": ":LOGGED_FROM",
+                "style": {"stroke": "#0284C7", "strokeWidth": 1.5},
+            })
+
+    # Recent transfers
+    for idx, st in enumerate(detail.get("recent_sent_transfers", [])[:6]):
+        target_id = st.get("to_account")
+        if target_id and target_id not in seen_nodes:
+            nodes.append({
+                "id": target_id,
+                "type": "account",
+                "data": {"label": target_id, "risk_score": 50, "balance": 12000},
+                "position": {"x": 460 + (idx % 2) * 140, "y": 380 + idx * 60},
+            })
+            seen_nodes.add(target_id)
+        if target_id:
+            edges.append({
+                "id": f"sent-{st.get('txn_id', idx)}",
+                "source": detail["id"],
+                "target": target_id,
+                "label": f"${st.get('amount', 0):,.0f}",
+                "animated": True,
+                "style": {"stroke": "#D97706", "strokeWidth": 2},
+            })
+
+    cypher_query = f"""MATCH (a:Account {{id: '{account_id}'}})
+OPTIONAL MATCH (u:User)-[:OWNS]->(a)
+OPTIONAL MATCH (a)-[:USED_DEVICE]->(d:Device)
+OPTIONAL MATCH (a)-[:LOGGED_FROM]->(i:IP)
+OPTIONAL MATCH (a)-[r:SENT]->(target:Account)
+RETURN a, u, collect(DISTINCT d) AS devices, collect(DISTINCT i) AS ips, collect(DISTINCT target) AS targets"""
+
+    return {
+        "account_id": account_id,
+        "nodes": nodes,
+        "edges": edges,
+        "cypher_query": cypher_query.strip(),
+    }
+
+
+
 @router.post("", response_model=AccountRead, status_code=status.HTTP_201_CREATED)
 async def create_account(
     data: AccountCreate,

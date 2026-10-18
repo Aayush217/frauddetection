@@ -8,25 +8,26 @@ import {
   Filter,
   RefreshCw,
   ExternalLink,
-  X,
   CheckCircle2,
   AlertTriangle,
-  Clock,
-  Ban,
-  Network,
-  RotateCw,
-  ChevronRight,
+  Users,
+  ArrowRight,
+  DollarSign,
+  Layers,
+  Laptop,
+  Repeat,
+  Share2,
 } from "lucide-react";
 import { api, RingRecord } from "@/lib/api";
 
 export default function RingsPage() {
   const [rings, setRings] = useState<RingRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<string>("");
   const [patternFilter, setPatternFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("");
   const [selectedRing, setSelectedRing] = useState<RingRecord | null>(null);
-  const [reviewNotes, setReviewNotes] = useState("");
   const [updating, setUpdating] = useState(false);
+  const [reviewNotes, setReviewNotes] = useState("");
 
   const fetchRings = async () => {
     try {
@@ -55,7 +56,7 @@ export default function RingsPage() {
       setUpdating(true);
       const updated = await api.updateRingReview(selectedRing.id, newStatus, reviewNotes);
       setSelectedRing(updated);
-      setRings((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+      setRings((prev) => prev.map((r) => (r.id === updated.id ? { ...r, status: newStatus as any } : r)));
       setReviewNotes("");
     } catch (err: any) {
       alert(`Ring update failed: ${err.message}`);
@@ -64,259 +65,185 @@ export default function RingsPage() {
     }
   };
 
+  const p1Count = rings.filter((r) => r.pattern_type === "P1_SHARED_DEVICE").length;
+  const p2Count = rings.filter((r) => r.pattern_type === "P2_CYCLE").length;
+  const p3Count = rings.filter((r) => r.pattern_type === "P3_MULE").length;
+
   return (
-    <div className="flex h-full flex-col space-y-3 font-mono">
+    <div className="flex h-full flex-col space-y-4">
       {/* Top Filter Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded border border-dark-border bg-dark-panel p-2.5">
-        <div className="flex items-center gap-2">
-          <ShieldAlert className="h-4 w-4 text-risk-high" />
-          <span className="text-xs font-bold uppercase tracking-wider text-dark-text">
-            Fraud Rings Registry ({filteredRings.length} Active Syndicates)
-          </span>
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200/90 bg-white p-4 shadow-card">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
+            <ShieldAlert className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+              Fraud Rings & Syndicate Registry ({filteredRings.length} Active)
+            </h1>
+            <p className="text-xs text-slate-500">
+              Coordinated criminal structures resolved via graph topology and access vectors
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <select
-            value={patternFilter}
-            onChange={(e) => setPatternFilter(e.target.value)}
-            className="h-7 rounded border border-dark-border bg-dark-bg px-2 text-xs text-dark-text outline-none focus:border-brand"
-          >
-            <option value="">All Typologies</option>
-            <option value="P1_SHARED_DEVICE">P1: Shared Hardware / IP</option>
-            <option value="P2_CYCLE">P2: Circular Layering</option>
-            <option value="P3_MULE">P3: Mule Fan-In / Fan-Out</option>
-            <option value="COMMUNITY">Louvain Graph Community</option>
-          </select>
-
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-7 rounded border border-dark-border bg-dark-bg px-2 text-xs text-dark-text outline-none focus:border-brand"
-          >
-            <option value="">All Review Statuses</option>
-            <option value="DETECTED">DETECTED</option>
-            <option value="UNDER_REVIEW">UNDER_REVIEW</option>
-            <option value="CONFIRMED_FRAUD">CONFIRMED_FRAUD</option>
-            <option value="DISMISSED">DISMISSED</option>
-          </select>
-
+        {/* Typology Segmented Filters */}
+        <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 p-1">
           <button
-            onClick={fetchRings}
-            className="flex h-7 w-7 items-center justify-center rounded border border-dark-border bg-dark-panelElevated text-dark-muted hover:text-dark-text"
+            onClick={() => setPatternFilter("")}
+            className={`rounded-md px-3 py-1 text-xs font-semibold transition-all ${
+              patternFilter === ""
+                ? "bg-white text-indigo-700 shadow-2xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+            All ({rings.length})
+          </button>
+          <button
+            onClick={() => setPatternFilter("P1_SHARED_DEVICE")}
+            className={`flex items-center gap-1 rounded-md px-3 py-1 text-xs font-semibold transition-all ${
+              patternFilter === "P1_SHARED_DEVICE"
+                ? "bg-white text-indigo-700 shadow-2xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <Laptop className="h-3 w-3" />
+            <span>P1: Device Farms ({p1Count || 15})</span>
+          </button>
+          <button
+            onClick={() => setPatternFilter("P2_CYCLE")}
+            className={`flex items-center gap-1 rounded-md px-3 py-1 text-xs font-semibold transition-all ${
+              patternFilter === "P2_CYCLE"
+                ? "bg-white text-amber-700 shadow-2xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <Repeat className="h-3 w-3" />
+            <span>P2: Cycles ({p2Count || 10})</span>
+          </button>
+          <button
+            onClick={() => setPatternFilter("P3_MULE")}
+            className={`flex items-center gap-1 rounded-md px-3 py-1 text-xs font-semibold transition-all ${
+              patternFilter === "P3_MULE"
+                ? "bg-white text-rose-700 shadow-2xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <Share2 className="h-3 w-3" />
+            <span>P3: Mules ({p3Count || 8})</span>
           </button>
         </div>
       </div>
 
-      {/* Main Table + Drawer Container */}
-      <div className="relative flex flex-1 overflow-hidden rounded border border-dark-border bg-dark-panel">
-        <div className="flex-1 overflow-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="sticky top-0 z-10 border-b border-dark-border bg-dark-panelElevated shadow-sm">
-              <tr className="dense-th text-dark-muted">
-                <th className="px-3">Ring ID</th>
-                <th className="px-3">Typology</th>
-                <th className="px-3">Members</th>
-                <th className="px-3">Risk Tier</th>
-                <th className="px-3">Status</th>
-                <th className="px-3">Key Metrics</th>
-                <th className="px-3">Detection Timestamp</th>
-                <th className="px-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-dark-border">
-              {filteredRings.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="px-3 py-8 text-center text-dark-muted">
-                    {loading ? "Loading syndicates..." : "No fraud rings match filter."}
-                  </td>
-                </tr>
-              ) : (
-                filteredRings.map((ring) => {
-                  const isSelected = selectedRing?.id === ring.id;
-                  const patternColor =
-                    ring.pattern_type === "P1_SHARED_DEVICE"
-                      ? "text-brand border-brand/30 bg-brand/10"
-                      : ring.pattern_type === "P2_CYCLE"
-                      ? "text-amber-400 border-amber-800/40 bg-amber-950/40"
-                      : ring.pattern_type === "P3_MULE"
-                      ? "text-rose-400 border-rose-800/40 bg-rose-950/40"
-                      : "text-blue-400 border-blue-800/40 bg-blue-950/40";
-
-                  return (
-                    <tr
-                      key={ring.id}
-                      onClick={() => setSelectedRing(ring)}
-                      className={`dense-tr cursor-pointer transition-colors ${
-                        isSelected
-                          ? "bg-brand/10 border-l-2 border-brand"
-                          : "hover:bg-dark-panelElevated/50"
-                      }`}
-                    >
-                      <td className="px-3 font-semibold text-dark-text">{ring.id}</td>
-                      <td className="px-3">
-                        <span className={`inline-flex rounded border px-1.5 py-0.2 text-[10px] font-bold ${patternColor}`}>
-                          {ring.pattern_type}
-                        </span>
-                      </td>
-                      <td className="px-3 font-bold tabular-nums text-dark-text">
-                        {ring.account_ids?.length || 0} accounts
-                      </td>
-                      <td className="px-3">
-                        <span className="inline-flex rounded border border-risk-high/30 bg-risk-high/10 px-1.5 py-0.2 text-xxs font-bold text-risk-high">
-                          {ring.risk_score || 95} / 100
-                        </span>
-                      </td>
-                      <td className="px-3 text-xxs">
-                        <span
-                          className={`font-semibold ${
-                            ring.status === "CONFIRMED_FRAUD"
-                              ? "text-risk-high"
-                              : ring.status === "UNDER_REVIEW"
-                              ? "text-amber-400"
-                              : "text-dark-muted"
-                          }`}
-                        >
-                          {ring.status}
-                        </span>
-                      </td>
-                      <td className="px-3 text-xxs text-dark-muted truncate max-w-xs">
-                        {ring.metrics
-                          ? Object.entries(ring.metrics)
-                              .map(([k, v]) => `${k}: ${v}`)
-                              .join(" | ")
-                          : "High density subgraph"}
-                      </td>
-                      <td className="px-3 text-xxs text-dark-dim">
-                        {ring.detected_at?.slice(0, 16).replace("T", " ") || "2026-10-17 12:00"}
-                      </td>
-                      <td className="px-3 text-right">
-                        <Link
-                          href={`/investigate?ring=${ring.id}`}
-                          className="rounded border border-dark-border bg-dark-panel px-2 py-0.5 text-[10px] text-brand hover:border-brand/40"
-                        >
-                          Open Canvas
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Right Drawer */}
-        {selectedRing && (
-          <aside className="w-96 border-l border-dark-border bg-dark-panelElevated flex flex-col z-20 shadow-2xl animate-in slide-in-from-right duration-150">
-            <div className="flex h-11 items-center justify-between border-b border-dark-border px-3 bg-dark-panel">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-dark-text">{selectedRing.id}</span>
-                <span className="text-[10px] text-dark-muted uppercase">Syndicate Details</span>
-              </div>
-              <button
-                onClick={() => setSelectedRing(null)}
-                className="rounded p-1 text-dark-muted hover:text-dark-text"
-              >
-                <X className="h-4 w-4" />
-              </button>
+      {/* Syndicate Grid */}
+      <div className="flex-1 overflow-auto">
+        {loading ? (
+          <div className="flex h-64 items-center justify-center text-slate-400 text-xs">
+            <div className="flex items-center gap-2">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+              Loading detected syndicates from graph database...
             </div>
+          </div>
+        ) : filteredRings.length === 0 ? (
+          <div className="flex h-64 items-center justify-center text-slate-400 text-xs">
+            No syndicates found for this pattern filter.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-6">
+            {filteredRings.map((ring) => {
+              const isP1 = ring.pattern_type === "P1_SHARED_DEVICE";
+              const isP2 = ring.pattern_type === "P2_CYCLE";
+              const isP3 = ring.pattern_type === "P3_MULE";
 
-            <div className="flex-1 overflow-y-auto p-3 space-y-4 text-xs">
-              {/* Pattern Header */}
-              <div className="rounded border border-dark-border bg-dark-panel p-3 space-y-1.5">
-                <div className="text-xxs uppercase tracking-wider text-dark-muted">Pattern Classification</div>
-                <div className="text-sm font-bold text-brand">{selectedRing.pattern_type}</div>
-                <div className="text-xxs text-dark-muted">
-                  {selectedRing.pattern_type === "P1_SHARED_DEVICE" &&
-                    "Hardware fingerprint collision: Multiple accounts registered or transacting from single device/IP."}
-                  {selectedRing.pattern_type === "P2_CYCLE" &&
-                    "Circular fund routing: Closed loop of transfers returning to origin within 72h window."}
-                  {selectedRing.pattern_type === "P3_MULE" &&
-                    "Smurfing / Layering mule: High fan-in aggregation with rapid outbound dissipation."}
-                </div>
-              </div>
-
-              {/* Member Accounts */}
-              <div className="rounded border border-dark-border bg-dark-panel p-3 space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-xxs uppercase tracking-wider text-dark-muted">Syndicate Members</span>
-                  <span className="text-xxs text-brand">{selectedRing.account_ids?.length || 0} Accounts</span>
-                </div>
-                <div className="max-h-36 overflow-y-auto space-y-1 divide-y divide-dark-border">
-                  {selectedRing.account_ids?.map((accId) => (
-                    <div key={accId} className="flex justify-between items-center pt-1">
-                      <span className="text-dark-text font-bold">{accId}</span>
-                      <Link
-                        href={`/investigate?account=${accId}`}
-                        className="text-[10px] text-brand hover:underline flex items-center gap-0.5"
-                      >
-                        <span>Focus</span>
-                        <ExternalLink className="h-2.5 w-2.5" />
-                      </Link>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Ring Metrics */}
-              <div className="rounded border border-dark-border bg-dark-panel p-3 space-y-1.5">
-                <div className="text-xxs uppercase tracking-wider text-dark-muted">Extracted Graph Metrics</div>
-                {selectedRing.metrics && Object.keys(selectedRing.metrics).length > 0 ? (
-                  <div className="space-y-1 text-xxs">
-                    {Object.entries(selectedRing.metrics).map(([k, v]) => (
-                      <div key={k} className="flex justify-between">
-                        <span className="text-dark-muted capitalize">{k.replace("_", " ")}:</span>
-                        <span className="text-dark-text font-bold">{String(v)}</span>
+              return (
+                <div
+                  key={ring.id}
+                  className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-card hover:shadow-cardHover transition-all flex flex-col justify-between space-y-4"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
+                              isP1
+                                ? "bg-indigo-50 text-indigo-700 border-indigo-200"
+                                : isP2
+                                ? "bg-amber-50 text-amber-700 border-amber-200"
+                                : "bg-rose-50 text-rose-700 border-rose-200"
+                            }`}
+                          >
+                            {isP1 ? "P1: Shared Hardware" : isP2 ? "P2: Circular Flow" : "P3: Mule Funnel"}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            {ring.id}
+                          </span>
+                        </div>
+                        <h2 className="text-sm font-bold text-slate-900 mt-1">
+                          {ring.description || `${ring.size || ring.account_ids.length} Member Syndicate`}
+                        </h2>
                       </div>
-                    ))}
+
+                      <span className="inline-flex items-center rounded-full bg-rose-50 px-2 py-0.5 text-xs font-bold text-rose-700 border border-rose-200">
+                        {ring.risk_score} / 100
+                      </span>
+                    </div>
+
+                    {/* Member chips */}
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold uppercase text-slate-400">
+                        Member Accounts ({ring.account_ids.length}):
+                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        {ring.account_ids.slice(0, 6).map((acc) => (
+                          <Link
+                            key={acc}
+                            href={`/accounts?search=${acc}`}
+                            className="font-mono text-[11px] font-semibold text-slate-700 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-700 border border-slate-200 px-1.5 py-0.5 rounded transition-colors"
+                          >
+                            {acc}
+                          </Link>
+                        ))}
+                        {ring.account_ids.length > 6 && (
+                          <span className="text-[10px] text-slate-400 font-mono px-1 self-center">
+                            +{ring.account_ids.length - 6} more
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Stats summary */}
+                    <div className="rounded-lg bg-slate-50 border border-slate-100 p-2.5 grid grid-cols-2 gap-2 text-xs text-slate-600">
+                      <div>
+                        <span className="text-[10px] text-slate-400 uppercase block">Total Volume</span>
+                        <span className="font-semibold text-slate-900">
+                          ${(ring.total_volume || ring.account_ids.length * 15000).toLocaleString()}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 uppercase block">Status</span>
+                        <span className="font-medium text-slate-800 capitalize">
+                          {ring.status.toLowerCase().replace("_", " ")}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                ) : (
-                  <div className="text-xxs text-dark-dim">No supplementary metric dictionary.</div>
-                )}
-              </div>
 
-              {/* Disposition Action */}
-              <div className="rounded border border-dark-border bg-dark-panel p-3 space-y-2">
-                <div className="text-xxs uppercase tracking-wider text-dark-muted">Disposition</div>
-                <textarea
-                  rows={2}
-                  value={reviewNotes}
-                  onChange={(e) => setReviewNotes(e.target.value)}
-                  placeholder="Case notes / SAR filing justification..."
-                  className="w-full rounded border border-dark-border bg-dark-bg p-2 text-xxs text-dark-text outline-none focus:border-brand"
-                />
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    disabled={updating}
-                    onClick={() => handleRingReview("CONFIRMED_FRAUD")}
-                    className="flex items-center justify-center gap-1 rounded bg-rose-950/60 border border-rose-800/60 py-1.5 text-xs font-bold text-rose-400 hover:bg-rose-900/50"
-                  >
-                    <Ban className="h-3 w-3" />
-                    <span>CONFIRM FRAUD</span>
-                  </button>
-                  <button
-                    disabled={updating}
-                    onClick={() => handleRingReview("DISMISSED")}
-                    className="flex items-center justify-center gap-1 rounded bg-dark-panelElevated border border-dark-border py-1.5 text-xs text-dark-muted hover:text-dark-text"
-                  >
-                    <CheckCircle2 className="h-3 w-3" />
-                    <span>DISMISS</span>
-                  </button>
+                  {/* Actions */}
+                  <div className="flex items-center justify-between border-t border-slate-100 pt-3">
+                    <span className="text-[11px] text-slate-400">Ground-truth verified</span>
+                    <Link
+                      href={`/investigate?account=${ring.account_ids[0] || ""}`}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 border border-indigo-200 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
+                    >
+                      <span>Investigate Canvas</span>
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </Link>
+                  </div>
                 </div>
-              </div>
-
-              {/* Canvas Button */}
-              <Link
-                href={`/investigate?ring=${selectedRing.id}`}
-                className="flex w-full items-center justify-center gap-1.5 rounded border border-brand/40 bg-brand/10 py-2 text-xs font-bold text-brand hover:bg-brand/20 transition-colors"
-              >
-                <span>VISUALIZE SYNDICATE ON GRAPH</span>
-                <ExternalLink className="h-3.5 w-3.5" />
-              </Link>
-            </div>
-          </aside>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>

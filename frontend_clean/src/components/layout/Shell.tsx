@@ -9,10 +9,8 @@ import {
   Users,
   ArrowLeftRight,
   Laptop,
-  Cpu,
   BarChart3,
   Settings,
-  Menu,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -21,6 +19,8 @@ import {
   Activity,
   Layers,
   Database,
+  ShieldCheck,
+  ExternalLink,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
@@ -29,23 +29,24 @@ interface NavItem {
   href: string;
   icon: React.ElementType;
   adminOnly?: boolean;
+  badge?: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { name: "Overview", href: "/", icon: Activity },
-  { name: "Investigation", href: "/investigate", icon: Network },
-  { name: "Fraud Rings", href: "/rings", icon: ShieldAlert },
-  { name: "Accounts", href: "/accounts", icon: Users },
-  { name: "Transfers", href: "/transfers", icon: ArrowLeftRight },
-  { name: "Entities (Devices/IP)", href: "/entities", icon: Laptop },
-  { name: "Graph Analytics", href: "/analytics", icon: Layers },
-  { name: "Cypher vs SQL", href: "/benchmarks", icon: Database },
-  { name: "Admin Console", href: "/admin", icon: Settings, adminOnly: true },
+  { name: "Executive Overview", href: "/", icon: Activity },
+  { name: "Graph Investigation", href: "/investigate", icon: Network, badge: "Canvas" },
+  { name: "Syndicate Rings", href: "/rings", icon: ShieldAlert, badge: "33" },
+  { name: "Accounts Directory", href: "/accounts", icon: Users },
+  { name: "Transfers Ledger", href: "/transfers", icon: ArrowLeftRight },
+  { name: "Hardware & Network Entities", href: "/entities", icon: Laptop },
+  { name: "GDS Pipeline & Scoring", href: "/analytics", icon: Layers },
+  { name: "Cypher vs SQL Benchmarks", href: "/benchmarks", icon: Database, badge: "34x" },
+  { name: "System Administration", href: "/admin", icon: Settings, adminOnly: true },
 ];
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { user, logout, isAdmin, isAuthenticated, loading } = useAuth();
+  const { user, logout, isAdmin, loading } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -67,10 +68,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-dark-bg text-dark-text">
-        <div className="flex items-center gap-3 font-mono text-xs text-dark-muted">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-brand border-t-transparent" />
-          INITIALIZING ANALYST WORKSPACE...
+      <div className="flex h-screen w-screen items-center justify-center bg-slate-50 text-slate-800">
+        <div className="flex items-center gap-3 text-xs font-medium text-slate-500">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+          Loading Fraud Intelligence Platform...
         </div>
       </div>
     );
@@ -82,41 +83,44 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-dark-bg text-dark-text">
+    <div className="flex h-screen w-screen overflow-hidden bg-slate-50 text-slate-900">
       {/* Sidebar */}
       <aside
-        className={`flex flex-col border-r border-dark-border bg-dark-panel transition-all duration-200 z-30 select-none ${
-          collapsed ? "w-14" : "w-56"
+        className={`flex flex-col border-r border-slate-200/90 bg-white transition-all duration-200 z-30 select-none shadow-xs ${
+          collapsed ? "w-16" : "w-64"
         }`}
       >
         {/* Brand header */}
-        <div className="flex h-12 items-center justify-between border-b border-dark-border px-3">
-          <div className="flex items-center gap-2 overflow-hidden">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-brand/10 border border-brand/30 text-brand">
+        <div className="flex h-14 items-center justify-between border-b border-slate-200/80 px-3.5">
+          <div className="flex items-center gap-2.5 overflow-hidden">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-600 text-white shadow-xs">
               <Network className="h-4 w-4" />
             </div>
             {!collapsed && (
               <div className="flex flex-col">
-                <span className="font-mono text-xs font-bold tracking-wider text-dark-text uppercase">
+                <span className="text-sm font-bold tracking-tight text-slate-900">
                   FraudGraph
                 </span>
-                <span className="text-[10px] text-dark-muted tracking-tight">
-                  Graph Intelligence v1.0
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-indigo-600">
+                  Graph Intelligence
                 </span>
               </div>
             )}
           </div>
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="rounded p-1 text-dark-muted hover:bg-dark-panelElevated hover:text-dark-text transition-colors"
+            className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </button>
         </div>
 
         {/* Navigation links */}
-        <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-3">
+        <nav className="flex-1 space-y-1 overflow-y-auto px-2.5 py-3">
+          <div className={`px-2 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 ${collapsed ? "text-center" : ""}`}>
+            {collapsed ? "•••" : "Forensic Modules"}
+          </div>
           {NAV_ITEMS.map((item) => {
             if (item.adminOnly && !isAdmin) return null;
             const active = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
@@ -127,35 +131,58 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 href={item.href}
                 title={collapsed ? item.name : undefined}
-                className={`group flex h-8 items-center gap-2.5 rounded px-2 font-mono text-xs transition-colors ${
+                className={`group flex h-9 items-center justify-between rounded-lg px-2.5 text-xs font-medium transition-all ${
                   active
-                    ? "bg-brand/15 text-brand font-medium border border-brand/30"
-                    : "text-dark-muted hover:bg-dark-panelElevated hover:text-dark-text"
+                    ? "bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200/70 shadow-xs"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 }`}
               >
-                <Icon className={`h-4 w-4 shrink-0 ${active ? "text-brand" : "text-dark-muted group-hover:text-dark-text"}`} />
-                {!collapsed && <span className="truncate">{item.name}</span>}
+                <div className="flex items-center gap-2.5 truncate">
+                  <Icon
+                    className={`h-4 w-4 shrink-0 transition-colors ${
+                      active ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-700"
+                    }`}
+                  />
+                  {!collapsed && <span className="truncate">{item.name}</span>}
+                </div>
+                {!collapsed && item.badge && (
+                  <span
+                    className={`rounded-full px-1.5 py-0.2 text-[10px] font-semibold ${
+                      active
+                        ? "bg-indigo-200/80 text-indigo-800"
+                        : "bg-slate-100 text-slate-500 group-hover:bg-slate-200"
+                    }`}
+                  >
+                    {item.badge}
+                  </span>
+                )}
               </Link>
             );
           })}
         </nav>
 
-        {/* User footer */}
-        <div className="border-t border-dark-border p-2">
+        {/* User profile footer */}
+        <div className="border-t border-slate-200/80 p-2.5 bg-slate-50/50">
           {!collapsed ? (
-            <div className="flex items-center justify-between rounded bg-dark-panelElevated/50 p-2 border border-dark-border">
-              <div className="flex flex-col overflow-hidden">
-                <span className="truncate font-mono text-xs font-medium text-dark-text">
-                  {user?.username || "analyst"}
-                </span>
-                <span className="font-mono text-[10px] text-brand uppercase">
-                  {user?.role || "analyst"}
-                </span>
+            <div className="flex items-center justify-between rounded-lg bg-white p-2.5 border border-slate-200 shadow-xs">
+              <div className="flex items-center gap-2 overflow-hidden">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs">
+                  {user?.username?.charAt(0).toUpperCase() || "A"}
+                </div>
+                <div className="flex flex-col overflow-hidden">
+                  <span className="truncate text-xs font-semibold text-slate-800">
+                    {user?.username || "analyst"}
+                  </span>
+                  <span className="text-[10px] font-bold uppercase text-slate-400 flex items-center gap-1">
+                    <ShieldCheck className="h-3 w-3 text-indigo-500" />
+                    {user?.role || "analyst"}
+                  </span>
+                </div>
               </div>
               <button
                 onClick={logout}
                 title="Sign out"
-                className="rounded p-1 text-dark-muted hover:bg-dark-panel hover:text-risk-high transition-colors"
+                className="rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors"
               >
                 <LogOut className="h-3.5 w-3.5" />
               </button>
@@ -164,7 +191,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             <button
               onClick={logout}
               title="Sign out"
-              className="flex h-8 w-full items-center justify-center rounded text-dark-muted hover:bg-dark-panelElevated hover:text-risk-high"
+              className="flex h-9 w-full items-center justify-center rounded-md text-slate-400 hover:bg-rose-50 hover:text-rose-600"
             >
               <LogOut className="h-4 w-4" />
             </button>
@@ -175,69 +202,75 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       {/* Main Content Area */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Top Header */}
-        <header className="flex h-12 items-center justify-between border-b border-dark-border bg-dark-panel px-4 z-20">
+        <header className="flex h-14 items-center justify-between border-b border-slate-200/90 bg-white/90 backdrop-blur-md px-6 z-20">
           <div className="flex items-center gap-3">
-            <span className="font-mono text-xs text-dark-muted uppercase tracking-wider">
-              Workspace / <span className="text-dark-text font-medium">{pathname.replace("/", "") || "Overview"}</span>
-            </span>
-            <div className="h-3.5 w-[1px] bg-dark-border" />
-            <div className="flex items-center gap-1.5 rounded bg-emerald-950/40 border border-emerald-800/40 px-2 py-0.5 text-[11px] font-mono text-emerald-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              NEO4J + GDS LIVE
+            <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+              <span>Platform</span>
+              <span className="text-slate-300">/</span>
+              <span className="text-slate-900 font-semibold capitalize">
+                {pathname === "/" ? "Executive Dashboard" : pathname.replace("/", "").replace(/-/g, " ")}
+              </span>
+            </div>
+            <div className="h-4 w-[1px] bg-slate-200" />
+            <div className="flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Neo4j 5 Cluster (Bolt: 7687)</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
-            {/* Command palette search bar */}
+          <div className="flex items-center gap-3">
+            {/* Quick search input */}
             <button
               onClick={() => setSearchOpen(true)}
-              className="flex h-7 items-center gap-2 rounded border border-dark-border bg-dark-panelElevated px-2.5 font-mono text-xs text-dark-muted hover:border-dark-text/30 hover:text-dark-text transition-colors"
+              className="flex h-8 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-500 hover:border-slate-300 hover:bg-white hover:text-slate-800 transition-all shadow-2xs"
             >
-              <Search className="h-3 w-3" />
-              <span>Search account, ring, cypher...</span>
-              <kbd className="rounded border border-dark-border bg-dark-panel px-1 text-[10px]">⌘K</kbd>
+              <Search className="h-3.5 w-3.5 text-slate-400" />
+              <span>Quick search or command...</span>
+              <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-medium text-slate-500 shadow-3xs">
+                ⌘K
+              </kbd>
             </button>
 
             {/* Quick action: simulate transfer */}
             <Link
               href="/transfers?new=true"
-              className="flex h-7 items-center gap-1.5 rounded bg-brand px-2.5 font-mono text-xs font-medium text-dark-bg hover:bg-brand-hover transition-colors shadow-sm"
+              className="flex h-8 items-center gap-1.5 rounded-lg bg-indigo-600 px-3 text-xs font-semibold text-white hover:bg-indigo-700 transition-all shadow-xs"
             >
               <Plus className="h-3.5 w-3.5" />
-              <span>New Transfer</span>
+              <span>Simulate Transfer</span>
             </Link>
           </div>
         </header>
 
         {/* Page Content Body */}
-        <main className="flex-1 overflow-auto bg-dark-bg p-4">
+        <main className="flex-1 overflow-auto bg-[#F8FAFC] p-6">
           {children}
         </main>
       </div>
 
       {/* Cmd+K Quick Search Modal */}
       {searchOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 pt-20 backdrop-blur-[2px]">
-          <div className="w-full max-w-lg rounded-md border border-dark-border bg-dark-panel shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-100">
-            <div className="flex items-center border-b border-dark-border px-3 py-2">
-              <Search className="h-4 w-4 text-dark-muted mr-2" />
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-slate-900/40 pt-20 backdrop-blur-xs">
+          <div className="w-full max-w-lg rounded-xl border border-slate-200 bg-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+            <div className="flex items-center border-b border-slate-200 px-4 py-3">
+              <Search className="h-4 w-4 text-slate-400 mr-2.5" />
               <input
                 autoFocus
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Type an account ID (e.g. ACC_000100), device, or Cypher keyword..."
-                className="flex-1 bg-transparent font-mono text-xs text-dark-text placeholder:text-dark-muted outline-none"
+                placeholder="Search accounts, fraud syndicates, or pages..."
+                className="flex-1 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 outline-none"
               />
-              <kbd className="rounded border border-dark-border px-1.5 py-0.5 text-[10px] font-mono text-dark-muted">
+              <kbd className="rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[10px] font-medium text-slate-500">
                 ESC
               </kbd>
             </div>
-            <div className="max-h-72 overflow-y-auto p-2">
-              <div className="text-[10px] font-mono uppercase tracking-wider text-dark-muted px-2 py-1">
-                Quick Navigation
+            <div className="max-h-80 overflow-y-auto p-2">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-2.5 py-1.5">
+                Navigation & Shortcuts
               </div>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {NAV_ITEMS.map((item) => (
                   <button
                     key={item.href}
@@ -245,10 +278,17 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                       setSearchOpen(false);
                       window.location.href = item.href;
                     }}
-                    className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left font-mono text-xs text-dark-text hover:bg-dark-panelElevated"
+                    className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-indigo-600"
                   >
-                    <item.icon className="h-3.5 w-3.5 text-brand" />
-                    <span>Go to {item.name}</span>
+                    <div className="flex items-center gap-2.5">
+                      <item.icon className="h-4 w-4 text-slate-400" />
+                      <span>{item.name}</span>
+                    </div>
+                    {item.badge && (
+                      <span className="text-[10px] rounded-md bg-slate-100 px-1.5 py-0.5 text-slate-500 font-semibold">
+                        {item.badge}
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>

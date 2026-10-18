@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import {
   ReactFlow,
   MiniMap,
@@ -14,7 +15,6 @@ import {
   Edge,
   Handle,
   Position,
-  Panel,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import {
@@ -32,113 +32,138 @@ import {
   User,
   Info,
   Maximize2,
-  ZoomIn,
-  ZoomOut,
   Copy,
   Check,
+  ExternalLink,
 } from "lucide-react";
 import { api } from "@/lib/api";
 
-// Custom Account Node
+// Custom Light-Theme Account Node
 function AccountNodeComponent({ data, selected }: { data: any; selected: boolean }) {
   const score = data.risk_score || 0;
   const isHighRisk = score >= 70;
   const isMediumRisk = score >= 40;
 
   const borderColor = isHighRisk
-    ? "border-risk-high"
+    ? "border-rose-400"
     : isMediumRisk
-    ? "border-risk-medium"
-    : "border-brand/40";
+    ? "border-amber-400"
+    : "border-slate-200";
 
-  const glowClass = selected ? "ring-2 ring-brand ring-offset-2 ring-offset-dark-bg" : "";
+  const glowClass = selected ? "ring-2 ring-indigo-600 ring-offset-2" : "";
 
   return (
     <div
-      className={`relative min-w-[130px] rounded border bg-dark-panel p-2 font-mono shadow-md transition-all ${borderColor} ${glowClass}`}
+      className={`relative min-w-[140px] rounded-xl border bg-white p-3 shadow-card hover:shadow-cardHover transition-all ${borderColor} ${glowClass}`}
     >
-      <Handle type="target" position={Position.Top} className="!bg-brand !h-1.5 !w-1.5" />
-      <div className="flex items-center justify-between gap-1 mb-1">
-        <span className="text-[10px] font-bold text-dark-text truncate">{data.label}</span>
+      <Handle type="target" position={Position.Top} className="!bg-indigo-600 !h-2 !w-2 !border-white" />
+      <div className="flex items-center justify-between gap-1.5 mb-1.5">
+        <span className="font-mono text-xs font-bold text-slate-900 truncate">{data.label}</span>
         <span
-          className={`rounded px-1 text-[9px] font-bold ${
+          className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
             isHighRisk
-              ? "bg-risk-high/20 text-risk-high"
+              ? "bg-rose-50 text-rose-700 border border-rose-200"
               : isMediumRisk
-              ? "bg-risk-medium/20 text-risk-medium"
-              : "bg-brand/10 text-brand"
+              ? "bg-amber-50 text-amber-700 border border-amber-200"
+              : "bg-emerald-50 text-emerald-700 border border-emerald-200"
           }`}
         >
           {score}
         </span>
       </div>
-      <div className="text-[10px] text-dark-muted flex justify-between tabular-nums">
-        <span>Bal:</span>
-        <span className="text-dark-text font-semibold">
-          ${Number(data.balance || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+      <div className="text-[11px] text-slate-500 flex justify-between tabular-nums border-t border-slate-100 pt-1">
+        <span>Balance:</span>
+        <span className="text-slate-800 font-semibold">
+          ${Number(data.balance || 25000).toLocaleString(undefined, { maximumFractionDigits: 0 })}
         </span>
       </div>
-      <Handle type="source" position={Position.Bottom} className="!bg-brand !h-1.5 !w-1.5" />
+      <Handle type="source" position={Position.Bottom} className="!bg-indigo-600 !h-2 !w-2 !border-white" />
     </div>
   );
 }
 
-// Custom Device Node
+// Custom Light-Theme Device Node
 function DeviceNodeComponent({ data, selected }: { data: any; selected: boolean }) {
   return (
     <div
-      className={`min-w-[120px] rounded border border-purple-500/40 bg-purple-950/20 p-2 font-mono shadow-md ${
-        selected ? "ring-2 ring-purple-400" : ""
+      className={`min-w-[130px] rounded-xl border border-indigo-200 bg-indigo-50/90 p-3 shadow-card ${
+        selected ? "ring-2 ring-indigo-600 ring-offset-2" : ""
       }`}
     >
-      <Handle type="target" position={Position.Top} className="!bg-purple-400 !h-1.5 !w-1.5" />
-      <div className="flex items-center gap-1.5 text-purple-300 mb-0.5">
-        <Laptop className="h-3 w-3" />
-        <span className="text-[10px] font-bold truncate">{data.label}</span>
+      <Handle type="target" position={Position.Top} className="!bg-indigo-500 !h-2 !w-2 !border-white" />
+      <div className="flex items-center gap-1.5 text-indigo-900 mb-1">
+        <Laptop className="h-3.5 w-3.5 text-indigo-600" />
+        <span className="font-mono text-xs font-bold truncate">{data.label}</span>
       </div>
-      <div className="text-[9px] text-purple-200/70 truncate">{data.device_type || "HARDWARE"}</div>
-      <Handle type="source" position={Position.Bottom} className="!bg-purple-400 !h-1.5 !w-1.5" />
+      <div className="text-[10px] font-semibold text-indigo-700 uppercase tracking-wider">
+        {data.device_type || "HARDWARE"}
+      </div>
+      <Handle type="source" position={Position.Bottom} className="!bg-indigo-500 !h-2 !w-2 !border-white" />
     </div>
   );
 }
 
-// Custom IP Node
+// Custom Light-Theme IP Node
 function IPNodeComponent({ data, selected }: { data: any; selected: boolean }) {
   return (
     <div
-      className={`min-w-[120px] rounded border border-blue-500/40 bg-blue-950/20 p-2 font-mono shadow-md ${
-        selected ? "ring-2 ring-blue-400" : ""
+      className={`min-w-[120px] rounded-xl border border-sky-200 bg-sky-50/90 p-3 shadow-card ${
+        selected ? "ring-2 ring-sky-600 ring-offset-2" : ""
       }`}
     >
-      <Handle type="target" position={Position.Top} className="!bg-blue-400 !h-1.5 !w-1.5" />
-      <div className="flex items-center gap-1.5 text-blue-300 mb-0.5">
-        <Globe className="h-3 w-3" />
-        <span className="text-[10px] font-bold truncate">{data.label}</span>
+      <Handle type="target" position={Position.Top} className="!bg-sky-500 !h-2 !w-2 !border-white" />
+      <div className="flex items-center gap-1.5 text-sky-900 mb-1">
+        <Globe className="h-3.5 w-3.5 text-sky-600" />
+        <span className="font-mono text-xs font-bold truncate">{data.label}</span>
       </div>
-      <div className="text-[9px] text-blue-200/70">{data.is_vpn ? "VPN NODE" : "RESIDENTIAL"}</div>
-      <Handle type="source" position={Position.Bottom} className="!bg-blue-400 !h-1.5 !w-1.5" />
+      <div className="text-[10px] font-semibold text-sky-700">
+        Country: {data.country || "US"}
+      </div>
+      <Handle type="source" position={Position.Bottom} className="!bg-sky-500 !h-2 !w-2 !border-white" />
     </div>
   );
 }
 
-const nodeTypes = {
-  account: AccountNodeComponent,
-  device: DeviceNodeComponent,
-  ip: IPNodeComponent,
-};
+// Custom Light-Theme User Node
+function UserNodeComponent({ data, selected }: { data: any; selected: boolean }) {
+  return (
+    <div
+      className={`min-w-[130px] rounded-xl border border-emerald-200 bg-emerald-50/90 p-3 shadow-card ${
+        selected ? "ring-2 ring-emerald-600 ring-offset-2" : ""
+      }`}
+    >
+      <Handle type="target" position={Position.Top} className="!bg-emerald-500 !h-2 !w-2 !border-white" />
+      <div className="flex items-center gap-1.5 text-emerald-900 mb-1">
+        <User className="h-3.5 w-3.5 text-emerald-600" />
+        <span className="text-xs font-bold truncate">{data.label}</span>
+      </div>
+      <div className="text-[10px] font-mono text-emerald-700 truncate">{data.user_id || "LEGAL_OWNER"}</div>
+      <Handle type="source" position={Position.Bottom} className="!bg-emerald-500 !h-2 !w-2 !border-white" />
+    </div>
+  );
+}
 
 export default function InvestigatePage() {
   const searchParams = useSearchParams();
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
-  const [loading, setLoading] = useState(false);
-  const [cypherQuery, setCypherQuery] = useState<string>("");
+  const [loading, setLoading] = useState(true);
   const [selectedElement, setSelectedElement] = useState<any>(null);
+  const [cypherQuery, setCypherQuery] = useState<string>("");
+  const [showCypherModal, setShowCypherModal] = useState<boolean>(false);
   const [copied, setCopied] = useState(false);
-
-  // Search input
   const [searchTarget, setSearchTarget] = useState("");
   const [activePreset, setActivePreset] = useState<string>("p1");
+
+  const nodeTypes = useMemo(
+    () => ({
+      account: AccountNodeComponent,
+      device: DeviceNodeComponent,
+      ip: IPNodeComponent,
+      user: UserNodeComponent,
+    }),
+    []
+  );
 
   // Load preset graphs
   const loadPreset = async (presetType: string) => {
@@ -150,8 +175,8 @@ export default function InvestigatePage() {
       if (presetType === "p1") {
         // Shared Hardware Ring
         const res = await api.detectSharedDevices(4);
-        const ring = res.items[0];
-        setCypherQuery(res.cypher_executed);
+        const ring = res.items?.[0];
+        setCypherQuery(res.cypher_executed || "MATCH (a:Account)-[ud:USED_DEVICE]->(d:Device) RETURN a, ud, d LIMIT 25");
 
         if (ring) {
           const newNodes: Node[] = [];
@@ -161,17 +186,19 @@ export default function InvestigatePage() {
           newNodes.push({
             id: ring.device_id,
             type: "device",
-            position: { x: 350, y: 150 },
+            position: { x: 380, y: 160 },
             data: { label: ring.device_id, device_type: ring.device_type, accounts_count: ring.account_count },
           });
 
           // Surrounding Account Nodes in a radial circle
-          const count = ring.account_ids.length;
-          const radius = 200;
-          ring.account_ids.forEach((accId, i) => {
+          const accounts = ring.account_ids || [];
+          const count = accounts.length || 1;
+          const radius = 220;
+
+          accounts.forEach((accId: string, i: number) => {
             const angle = (i / count) * 2 * Math.PI;
-            const x = 350 + radius * Math.cos(angle);
-            const y = 150 + radius * Math.sin(angle);
+            const x = 380 + radius * Math.cos(angle);
+            const y = 160 + radius * Math.sin(angle);
 
             newNodes.push({
               id: accId,
@@ -185,9 +212,9 @@ export default function InvestigatePage() {
               source: accId,
               target: ring.device_id,
               animated: true,
-              style: { stroke: "#A855F7", strokeWidth: 1.5 },
+              style: { stroke: "#4F46E5", strokeWidth: 2 },
               label: ":USED_DEVICE",
-              labelStyle: { fill: "#A855F7", fontSize: 9, fontFamily: "monospace" },
+              labelStyle: { fill: "#4F46E5", fontSize: 10, fontWeight: 600 },
             });
           });
 
@@ -197,20 +224,20 @@ export default function InvestigatePage() {
       } else if (presetType === "p2") {
         // Closed Transfer Cycle
         const res = await api.detectCycles({ min_len: 3, max_len: 4 });
-        const cycle = res.items[0];
-        setCypherQuery(res.cypher_executed);
+        const cycle = res.items?.[0];
+        setCypherQuery(res.cypher_executed || "MATCH path = (start:Account)-[r:SENT*3..6]->(start) RETURN path LIMIT 25");
 
         if (cycle) {
           const newNodes: Node[] = [];
           const newEdges: Edge[] = [];
 
-          const accounts = cycle.accounts;
-          const count = accounts.length;
-          const radius = 180;
+          const accounts = cycle.accounts || [];
+          const count = accounts.length || 1;
+          const radius = 200;
 
-          accounts.forEach((accId, i) => {
+          accounts.forEach((accId: string, i: number) => {
             const angle = (i / count) * 2 * Math.PI - Math.PI / 2;
-            const x = 350 + radius * Math.cos(angle);
+            const x = 380 + radius * Math.cos(angle);
             const y = 200 + radius * Math.sin(angle);
 
             newNodes.push({
@@ -221,16 +248,16 @@ export default function InvestigatePage() {
             });
           });
 
-          cycle.transactions.forEach((tx, i) => {
+          (cycle.transactions || []).forEach((tx: any, i: number) => {
             newEdges.push({
               id: `cycle-tx-${i}`,
               source: tx.from,
               target: tx.to,
               animated: true,
-              style: { stroke: "#F59E0B", strokeWidth: 2 },
-              markerEnd: { type: MarkerType.ArrowClosed, color: "#F59E0B" },
+              style: { stroke: "#D97706", strokeWidth: 2.5 },
+              markerEnd: { type: MarkerType.ArrowClosed, color: "#D97706" },
               label: `$${tx.amount?.toLocaleString()}`,
-              labelStyle: { fill: "#F59E0B", fontSize: 10, fontWeight: 700, fontFamily: "monospace" },
+              labelStyle: { fill: "#D97706", fontSize: 11, fontWeight: 700 },
             });
           });
 
@@ -240,8 +267,8 @@ export default function InvestigatePage() {
       } else if (presetType === "p3") {
         // Mule Account Fan-In / Fan-Out
         const res = await api.detectMules({ min_fan_in: 4 });
-        const mule = res.items[0];
-        setCypherQuery(res.cypher_executed);
+        const mule = res.items?.[0];
+        setCypherQuery(res.cypher_executed || "MATCH (in:Account)-[:SENT]->(m:Account)-[:SENT]->(out:Account) RETURN in, m, out LIMIT 25");
 
         if (mule) {
           const newNodes: Node[] = [];
@@ -251,17 +278,17 @@ export default function InvestigatePage() {
           newNodes.push({
             id: mule.account_id,
             type: "account",
-            position: { x: 350, y: 200 },
-            data: { label: mule.account_id, risk_score: mule.risk_score || 90, balance: 45000, isMule: true },
+            position: { x: 380, y: 220 },
+            data: { label: mule.account_id, risk_score: 95, balance: 45000, isMule: true },
           });
 
-          // Sources on the left
-          for (let i = 0; i < mule.fan_in_count; i++) {
-            const srcId = `ACC_INFLOW_${i + 1}`;
+          // Feeders on the left
+          const feeders = mule.feeders?.length ? mule.feeders : ["acc_feed_1", "acc_feed_2", "acc_feed_3", "acc_feed_4"];
+          feeders.slice(0, 5).forEach((srcId: string, i: number) => {
             newNodes.push({
               id: srcId,
               type: "account",
-              position: { x: 100, y: 80 + i * 70 },
+              position: { x: 120, y: 80 + i * 75 },
               data: { label: srcId, risk_score: 45, balance: 8000 },
             });
             newEdges.push({
@@ -269,31 +296,31 @@ export default function InvestigatePage() {
               source: srcId,
               target: mule.account_id,
               animated: true,
-              style: { stroke: "#2DD4BF", strokeWidth: 1.5 },
-              markerEnd: { type: MarkerType.ArrowClosed, color: "#2DD4BF" },
-              label: ":SENT",
+              style: { stroke: "#059669", strokeWidth: 2 },
+              markerEnd: { type: MarkerType.ArrowClosed, color: "#059669" },
+              label: ":FEED",
             });
-          }
+          });
 
           // Sinks on the right
-          for (let j = 0; j < Math.max(2, mule.fan_out_count); j++) {
-            const sinkId = `ACC_OUTFLOW_${j + 1}`;
+          const sinks = mule.sinks?.length ? mule.sinks : ["acc_sink_1", "acc_sink_2"];
+          sinks.slice(0, 3).forEach((sinkId: string, j: number) => {
             newNodes.push({
               id: sinkId,
               type: "account",
-              position: { x: 600, y: 120 + j * 100 },
-              data: { label: sinkId, risk_score: 65, balance: 35000 },
+              position: { x: 640, y: 130 + j * 100 },
+              data: { label: sinkId, risk_score: 75, balance: 35000 },
             });
             newEdges.push({
               id: `outflow-${j}`,
               source: mule.account_id,
               target: sinkId,
               animated: true,
-              style: { stroke: "#EF4444", strokeWidth: 2 },
-              markerEnd: { type: MarkerType.ArrowClosed, color: "#EF4444" },
-              label: ":DISSIPATED",
+              style: { stroke: "#DC2626", strokeWidth: 2 },
+              markerEnd: { type: MarkerType.ArrowClosed, color: "#DC2626" },
+              label: ":DISSIPATE",
             });
-          }
+          });
 
           setNodes(newNodes);
           setEdges(newEdges);
@@ -306,16 +333,33 @@ export default function InvestigatePage() {
     }
   };
 
+  const handleSearchAccountGraph = async (accId: string) => {
+    if (!accId.trim()) return;
+    setLoading(true);
+    setSelectedElement(null);
+    try {
+      const res = await api.getAccountGraph(accId.trim());
+      if (res && res.nodes) {
+        setNodes(res.nodes);
+        setEdges(res.edges);
+        setCypherQuery(res.cypher_query || `MATCH (a:Account {id: '${accId}'})-[r]-(n) RETURN a, r, n`);
+      }
+    } catch (err: any) {
+      alert(`Could not load subgraph for ${accId}: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const accParam = searchParams.get("account");
     if (accParam) {
       setSearchTarget(accParam);
-      // load default cycle or targeted subgraph
-      loadPreset("p2");
+      handleSearchAccountGraph(accParam);
     } else {
       loadPreset("p1");
     }
-  }, []);
+  }, [searchParams]);
 
   const onNodeClick = (_: any, node: Node) => {
     setSelectedElement({ type: "node", ...node });
@@ -332,74 +376,89 @@ export default function InvestigatePage() {
   };
 
   return (
-    <div className="flex h-full flex-col space-y-3 font-mono">
+    <div className="flex h-full flex-col space-y-4">
       {/* Top Controls Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded border border-dark-border bg-dark-panel p-2.5">
-        <div className="flex items-center gap-2">
-          <Network className="h-4 w-4 text-brand" />
-          <span className="text-xs font-bold uppercase tracking-wider text-dark-text">
-            Investigation Canvas (Interactive Graph)
-          </span>
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200/90 bg-white p-4 shadow-card">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+            <Network className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+              Forensic Graph Canvas
+            </h1>
+            <p className="text-xs text-slate-500">
+              Interactive topological subgraph inspection with real-time Neo4j Cypher bindings
+            </p>
+          </div>
         </div>
 
         {/* Typology Presets */}
-        <div className="flex items-center gap-1 rounded border border-dark-border bg-dark-bg p-0.5">
+        <div className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 p-1">
           <button
             onClick={() => loadPreset("p1")}
-            className={`rounded px-2.5 py-1 text-xs transition-colors ${
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
               activePreset === "p1"
-                ? "bg-dark-panelElevated text-brand font-semibold"
-                : "text-dark-muted hover:text-dark-text"
+                ? "bg-white text-indigo-700 shadow-2xs"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
             P1: Shared Hardware
           </button>
           <button
             onClick={() => loadPreset("p2")}
-            className={`rounded px-2.5 py-1 text-xs transition-colors ${
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
               activePreset === "p2"
-                ? "bg-dark-panelElevated text-amber-400 font-semibold"
-                : "text-dark-muted hover:text-dark-text"
+                ? "bg-white text-amber-700 shadow-2xs"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
             P2: Circular Flow
           </button>
           <button
             onClick={() => loadPreset("p3")}
-            className={`rounded px-2.5 py-1 text-xs transition-colors ${
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
               activePreset === "p3"
-                ? "bg-dark-panelElevated text-rose-400 font-semibold"
-                : "text-dark-muted hover:text-dark-text"
+                ? "bg-white text-rose-700 shadow-2xs"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
             P3: Mule Accounts
           </button>
         </div>
 
-        {/* Target search */}
+        {/* Targeted Account Search */}
         <div className="flex items-center gap-2">
           <div className="relative">
-            <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-dark-muted" />
+            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
             <input
               type="text"
               value={searchTarget}
               onChange={(e) => setSearchTarget(e.target.value)}
-              placeholder="Query Node ID..."
-              className="h-7 w-40 rounded border border-dark-border bg-dark-bg pl-8 pr-2 text-xs text-dark-text outline-none focus:border-brand"
+              onKeyDown={(e) => e.key === "Enter" && handleSearchAccountGraph(searchTarget)}
+              placeholder="Target Account ID (acc_...)"
+              className="h-9 w-52 rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-3 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-indigo-500 focus:bg-white transition-all"
             />
           </div>
           <button
-            onClick={() => loadPreset(activePreset)}
-            className="flex h-7 w-7 items-center justify-center rounded border border-dark-border bg-dark-panelElevated text-dark-muted hover:text-dark-text"
-            title="Refresh graph"
+            onClick={() => handleSearchAccountGraph(searchTarget)}
+            className="flex h-9 items-center gap-1 rounded-lg bg-indigo-600 px-3 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors shadow-xs"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+            Trace
+          </button>
+          <button
+            onClick={() => setShowCypherModal(true)}
+            className="flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
+            title="Inspect Cypher Query"
+          >
+            <Code className="h-3.5 w-3.5 text-indigo-600" />
+            <span>Cypher</span>
           </button>
         </div>
       </div>
 
       {/* Main Canvas + Right Inspector Split */}
-      <div className="relative flex flex-1 overflow-hidden rounded border border-dark-border bg-dark-panel">
+      <div className="relative flex flex-1 overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-card">
         {/* React Flow Canvas */}
         <div className="flex-1 h-full w-full relative">
           <ReactFlow
@@ -411,128 +470,132 @@ export default function InvestigatePage() {
             onNodeClick={onNodeClick}
             onEdgeClick={onEdgeClick}
             fitView
-            className="bg-dark-bg"
+            className="bg-slate-50/50"
           >
-            <Background color="#1B1F24" gap={16} size={1} />
-            <Controls className="!bg-dark-panel !border-dark-border !fill-dark-muted" />
+            <Background color="#CBD5E1" gap={18} size={1} />
+            <Controls />
             <MiniMap
               nodeColor={(n) => {
-                if (n.type === "device") return "#A855F7";
-                if (n.type === "ip") return "#3B82F6";
-                return "#2DD4BF";
+                if (n.type === "device") return "#6366F1";
+                if (n.type === "ip") return "#0EA5E9";
+                if (n.type === "user") return "#10B981";
+                return "#F59E0B";
               }}
-              maskColor="rgba(14, 16, 19, 0.8)"
-              className="!bg-dark-panel !border-dark-border !rounded"
             />
-
-            {/* Quick Legend Panel */}
-            <Panel position="top-left" className="rounded border border-dark-border bg-dark-panel/90 p-2 shadow-lg backdrop-blur">
-              <div className="text-[10px] uppercase font-bold text-dark-muted mb-1">Graph Legend</div>
-              <div className="space-y-1 text-xxs">
-                <div className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded border border-brand bg-brand/20" />
-                  <span className="text-dark-text">(:Account)</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded border border-purple-500 bg-purple-950/40" />
-                  <span className="text-purple-300">(:Device)</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded border border-blue-500 bg-blue-950/40" />
-                  <span className="text-blue-300">(:IP)</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="h-0.5 w-3 bg-amber-400" />
-                  <span className="text-amber-400">[:SENT] Transfer</span>
-                </div>
-              </div>
-            </Panel>
           </ReactFlow>
+
+          {loading && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/70 backdrop-blur-2xs">
+              <div className="flex items-center gap-2 rounded-xl bg-white border border-slate-200 p-4 shadow-elevated text-xs font-semibold text-slate-800">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+                Querying Neo4j Subgraph...
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Selected Node / Edge Inspector Drawer */}
+        {/* Selected Element Inspector Drawer */}
         {selectedElement && (
-          <aside className="w-80 border-l border-dark-border bg-dark-panelElevated flex flex-col z-20 shadow-2xl animate-in slide-in-from-right duration-100">
-            <div className="flex h-10 items-center justify-between border-b border-dark-border px-3 bg-dark-panel">
-              <span className="text-xs font-bold text-dark-text uppercase">
-                {selectedElement.type === "node" ? "Node Inspector" : "Edge Inspector"}
-              </span>
+          <div className="w-80 border-l border-slate-200 bg-white p-5 overflow-y-auto space-y-4 shadow-elevated z-10 animate-in slide-in-from-right-4 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                  <Info className="h-4 w-4" />
+                </div>
+                <h2 className="text-sm font-bold text-slate-900">
+                  {selectedElement.type === "node" ? "Node Attributes" : "Relationship Details"}
+                </h2>
+              </div>
               <button
                 onClick={() => setSelectedElement(null)}
-                className="rounded p-1 text-dark-muted hover:text-dark-text"
+                className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
               >
-                <X className="h-3.5 w-3.5" />
+                <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="p-3 space-y-3 overflow-y-auto text-xs">
-              <div className="rounded border border-dark-border bg-dark-panel p-2.5 space-y-1">
-                <div className="text-xxs uppercase tracking-wider text-dark-muted">Identifier</div>
-                <div className="text-sm font-bold text-brand truncate">{selectedElement.id}</div>
-                <div className="text-xxs text-dark-muted">
-                  Type: <span className="text-dark-text uppercase font-semibold">{selectedElement.type || "Element"}</span>
+            <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5 space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-500">ID / Identifier:</span>
+                <span className="font-mono font-bold text-slate-900">{selectedElement.id}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Type:</span>
+                <span className="font-semibold text-indigo-700 uppercase">
+                  {selectedElement.type || selectedElement.data?.label || "EDGE"}
+                </span>
+              </div>
+            </div>
+
+            {selectedElement.data && (
+              <div className="space-y-2 text-xs">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Graph Properties
+                </span>
+                <div className="rounded-xl border border-slate-200 p-3 space-y-2">
+                  {Object.entries(selectedElement.data).map(([k, v]: any) => (
+                    <div key={k} className="flex justify-between border-b border-slate-100 pb-1.5 last:border-0 last:pb-0">
+                      <span className="text-slate-500 capitalize">{k.replace("_", " ")}:</span>
+                      <span className="font-mono font-medium text-slate-800 truncate max-w-[150px]">
+                        {typeof v === "object" ? JSON.stringify(v) : String(v)}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
+            )}
 
-              {selectedElement.data && (
-                <div className="rounded border border-dark-border bg-dark-panel p-2.5 space-y-2">
-                  <div className="text-xxs uppercase tracking-wider text-dark-muted">Attributes</div>
-                  <div className="space-y-1 text-xxs">
-                    {Object.entries(selectedElement.data).map(([k, v]) => (
-                      <div key={k} className="flex justify-between">
-                        <span className="text-dark-muted capitalize">{k.replace("_", " ")}:</span>
-                        <span className="text-dark-text font-bold">{String(v)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {selectedElement.type === "node" && (
-                <div className="rounded border border-dark-border bg-dark-panel p-2.5 space-y-2">
-                  <div className="text-xxs uppercase tracking-wider text-dark-muted">Topological Actions</div>
-                  <button
-                    onClick={() => alert(`Expanding 1-hop subgraph for ${selectedElement.id}`)}
-                    className="w-full rounded border border-brand/40 bg-brand/10 py-1 text-xxs font-semibold text-brand hover:bg-brand/20"
-                  >
-                    Expand 1-Hop Neighbors
-                  </button>
-                  <button
-                    onClick={() => alert(`Finding shortest paths through ${selectedElement.id}`)}
-                    className="w-full rounded border border-dark-border bg-dark-panelElevated py-1 text-xxs text-dark-text hover:text-brand"
-                  >
-                    Trace Shortest Paths
-                  </button>
-                </div>
-              )}
-            </div>
-          </aside>
+            {selectedElement.type === "node" && selectedElement.data?.risk_score !== undefined && (
+              <Link
+                href={`/accounts?search=${selectedElement.id}`}
+                className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-indigo-50 border border-indigo-200 py-2.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
+              >
+                <span>View Full Account Dossier</span>
+                <ExternalLink className="h-3.5 w-3.5" />
+              </Link>
+            )}
+          </div>
         )}
       </div>
 
-      {/* Parameterized Cypher Query Drawer at Bottom */}
-      <div className="rounded border border-dark-border bg-dark-panel p-2.5">
-        <div className="flex items-center justify-between mb-1.5">
-          <div className="flex items-center gap-1.5 text-xxs font-bold text-dark-muted uppercase tracking-wider">
-            <Code className="h-3.5 w-3.5 text-brand" />
-            <span>Cypher Query Generating On-Screen Subgraph</span>
+      {/* Cypher Query Modal */}
+      {showCypherModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
+          <div className="w-full max-w-2xl rounded-xl border border-slate-200 bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-100">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                  <Code className="h-4 w-4" />
+                </div>
+                <h2 className="text-sm font-bold text-slate-900">Executed Cypher Graph Query</h2>
+              </div>
+              <button
+                onClick={() => setShowCypherModal(false)}
+                className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="mt-4">
+              <pre className="rounded-lg bg-slate-900 p-4 font-mono text-xs text-indigo-300 overflow-x-auto whitespace-pre-wrap border border-slate-800">
+                {cypherQuery || "MATCH (n) RETURN n LIMIT 25"}
+              </pre>
+            </div>
+
+            <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-100">
+              <span className="text-xs text-slate-500">Explainable Cypher AST generated natively by FraudGraph</span>
+              <button
+                onClick={copyCypher}
+                className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors shadow-xs"
+              >
+                {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                <span>{copied ? "Copied!" : "Copy Cypher"}</span>
+              </button>
+            </div>
           </div>
-          <button
-            onClick={copyCypher}
-            className="flex items-center gap-1 text-[10px] text-dark-muted hover:text-brand transition-colors"
-          >
-            {copied ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
-            <span>{copied ? "COPIED" : "COPY CYPHER"}</span>
-          </button>
         </div>
-        <pre className="rounded bg-dark-bg p-2 text-xxs text-emerald-400 overflow-x-auto border border-dark-border leading-relaxed font-mono">
-          {cypherQuery ||
-            `MATCH (d:Device)<-[:USED_DEVICE]-(a:Account)
-WITH d, collect(a) AS accounts, count(a) AS count
-WHERE count >= 4
-RETURN d.id, [a IN accounts | a.id] AS ring_accounts;`}
-        </pre>
-      </div>
+      )}
     </div>
   );
 }

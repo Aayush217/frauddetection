@@ -32,6 +32,22 @@ async def lifespan(app: FastAPI):
         logger.info("Neo4j database verified. Ensuring constraints and indexes...")
         schema_res = init_schema()
         logger.info(f"Schema initialized: {len(schema_res['applied'])} statements verified.")
+
+        # Check if database has accounts; if 0, auto-seed synthetic data on docker compose up
+        try:
+            from app.db.neo4j import execute_cypher
+            node_check = execute_cypher("MATCH (a:Account) RETURN count(a) AS cnt LIMIT 1")
+            if node_check and node_check[0]["cnt"] == 0:
+                logger.info("Database is empty. Automatically generating initial synthetic fraud graph...")
+                import subprocess
+                import sys
+                from pathlib import Path
+                gen_script = Path(__file__).resolve().parent.parent.parent / "scripts" / "generate_data.py"
+                if gen_script.exists():
+                    subprocess.run([sys.executable, str(gen_script), "--scale", "1.0", "--seed", "42"], check=False)
+                    logger.info("Automatic initial seeding completed.")
+        except Exception as seed_err:
+            logger.warning(f"Could not run initial auto-seed check: {seed_err}")
     else:
         logger.warning("Could not establish immediate Neo4j connection; will retry upon incoming requests.")
 

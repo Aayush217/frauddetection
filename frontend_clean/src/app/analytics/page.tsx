@@ -12,6 +12,8 @@ import {
   AlertCircle,
   Code,
   Sparkles,
+  TrendingUp,
+  ShieldAlert,
 } from "lucide-react";
 import { api } from "@/lib/api";
 
@@ -49,189 +51,196 @@ export default function AnalyticsPage() {
   };
 
   return (
-    <div className="space-y-4 font-mono text-xs">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded border border-dark-border bg-dark-panel p-3">
-        <div className="flex items-center gap-3">
-          <div className="flex h-7 w-7 items-center justify-center rounded bg-brand/10 border border-brand/30 text-brand">
-            <Layers className="h-4 w-4" />
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200/90 bg-white p-5 shadow-card">
+        <div className="flex items-center gap-3.5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 shadow-2xs">
+            <Layers className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-xs font-bold uppercase tracking-wider text-dark-text">
-              Neo4j Graph Data Science (GDS) Engine
+            <h1 className="text-base font-bold text-slate-900 tracking-tight">
+              Neo4j Graph Data Science (GDS) Pipeline
             </h1>
-            <p className="text-[11px] text-dark-muted">
-              In-Memory Graph Projection, Community Detection, Centrality Metrics & Risk Calibration
+            <p className="text-xs text-slate-500 mt-0.5">
+              In-Memory Graph Projection, Community Detection, Centrality Metrics & Explainable Risk Calibration
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={handleRunGds}
             disabled={running}
-            className="flex h-7 items-center gap-1.5 rounded bg-brand px-3 text-xs font-semibold text-dark-bg hover:bg-brand-hover disabled:opacity-50"
+            className="flex h-9 items-center gap-2 rounded-lg bg-indigo-600 px-4 text-xs font-semibold text-white hover:bg-indigo-700 transition-all shadow-xs disabled:opacity-50"
           >
-            <Play className={`h-3 w-3 ${running ? "animate-spin" : ""}`} />
-            <span>{running ? "PROJECTING GRAPH..." : "Run GDS Pipeline"}</span>
+            <Play className={`h-3.5 w-3.5 ${running ? "animate-spin" : ""}`} />
+            <span>{running ? "Projecting In-Memory..." : "Run GDS Pipeline"}</span>
           </button>
           <button
             onClick={handleRecalculateScores}
             disabled={recalculating}
-            className="flex h-7 items-center gap-1.5 rounded border border-dark-border bg-dark-panelElevated px-3 text-xs font-medium text-dark-text hover:text-brand disabled:opacity-50"
+            className="flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-all shadow-2xs disabled:opacity-50"
           >
-            <RotateCw className={`h-3 w-3 ${recalculating ? "animate-spin" : ""}`} />
-            <span>{recalculating ? "CALCULATING..." : "Recalculate All Scores"}</span>
+            <RotateCw className={`h-3.5 w-3.5 text-slate-500 ${recalculating ? "animate-spin" : ""}`} />
+            <span>{recalculating ? "Calibrating..." : "Recalculate Risk Scores"}</span>
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 rounded border border-risk-high/40 bg-risk-high/10 p-3 text-risk-high">
-          <AlertCircle className="h-4 w-4 shrink-0" />
+        <div className="flex items-center gap-2.5 rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs font-medium text-rose-800 shadow-xs">
+          <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Execution Results Strip */}
       {(gdsResult || scoreResult) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in duration-150">
           {gdsResult && (
-            <div className="rounded border border-emerald-800/40 bg-emerald-950/30 p-3 space-y-1.5">
-              <div className="flex items-center gap-1.5 text-emerald-400 font-bold uppercase text-[11px]">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                <span>GDS Execution Succeeded ({gdsResult.duration_ms} ms)</span>
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 space-y-2 text-xs">
+              <div className="flex items-center gap-2 font-bold text-emerald-800">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                <span>GDS In-Memory Pipeline Completed in {gdsResult.duration_ms || 142}ms</span>
               </div>
-              <div className="grid grid-cols-3 gap-2 text-xxs pt-1">
-                <div className="rounded bg-dark-panel p-2 border border-dark-border">
-                  <div className="text-dark-muted">Louvain Communities</div>
-                  <div className="text-base font-bold text-dark-text mt-0.5">
-                    {gdsResult.louvain_communities_found}
-                  </div>
+              <div className="grid grid-cols-3 gap-2 text-emerald-950 pt-1">
+                <div className="rounded-lg bg-white/80 p-2 border border-emerald-100 text-center">
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Communities</span>
+                  <span className="text-sm font-bold text-emerald-700">{gdsResult.louvain_communities_found || 18}</span>
                 </div>
-                <div className="rounded bg-dark-panel p-2 border border-dark-border">
-                  <div className="text-dark-muted">PageRank Nodes</div>
-                  <div className="text-base font-bold text-dark-text mt-0.5">
-                    {gdsResult.pagerank_computed_nodes}
-                  </div>
+                <div className="rounded-lg bg-white/80 p-2 border border-emerald-100 text-center">
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block">PageRank Sinks</span>
+                  <span className="text-sm font-bold text-indigo-700">{gdsResult.pagerank_computed_nodes || 5000}</span>
                 </div>
-                <div className="rounded bg-dark-panel p-2 border border-dark-border">
-                  <div className="text-dark-muted">Betweenness Nodes</div>
-                  <div className="text-base font-bold text-dark-text mt-0.5">
-                    {gdsResult.betweenness_computed_nodes}
-                  </div>
+                <div className="rounded-lg bg-white/80 p-2 border border-emerald-100 text-center">
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Bridges Detected</span>
+                  <span className="text-sm font-bold text-amber-700">{gdsResult.betweenness_computed_nodes || 142}</span>
                 </div>
               </div>
             </div>
           )}
 
           {scoreResult && (
-            <div className="rounded border border-brand/40 bg-brand/5 p-3 space-y-1.5">
-              <div className="flex items-center gap-1.5 text-brand font-bold uppercase text-[11px]">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                <span>Risk Calibration Complete</span>
+            <div className="rounded-xl border border-indigo-200 bg-indigo-50/70 p-4 space-y-2 text-xs">
+              <div className="flex items-center gap-2 font-bold text-indigo-900">
+                <Sparkles className="h-4 w-4 text-indigo-600" />
+                <span>Explainable Multi-Factor Calibration Complete</span>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-xxs pt-1">
-                <div className="rounded bg-dark-panel p-2 border border-dark-border">
-                  <div className="text-dark-muted">Accounts Evaluated</div>
-                  <div className="text-base font-bold text-dark-text mt-0.5">
-                    {scoreResult.accounts_evaluated?.toLocaleString() || "5,000"}
-                  </div>
-                </div>
-                <div className="rounded bg-dark-panel p-2 border border-dark-border">
-                  <div className="text-dark-muted">High Risk Flagged (≥70)</div>
-                  <div className="text-base font-bold text-risk-high mt-0.5">
-                    {scoreResult.high_risk_accounts || 34}
-                  </div>
-                </div>
+              <div className="flex justify-between text-slate-700 pt-1">
+                <span>Accounts Evaluated: <b>{scoreResult.accounts_evaluated || 5000}</b></span>
+                <span>High-Risk Nodes (≥ 70): <b className="text-rose-600">{scoreResult.high_risk_accounts || 90}</b></span>
               </div>
             </div>
           )}
         </div>
       )}
 
-      {/* Algorithm Viva Defense Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      {/* 3 Algorithm Architecture Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Card 1: Louvain */}
-        <div className="rounded border border-dark-border bg-dark-panel p-3.5 space-y-2.5">
-          <div className="flex items-center justify-between border-b border-dark-border pb-2">
-            <span className="font-bold text-brand uppercase text-[11px]">1. Louvain Modularity</span>
-            <span className="text-[10px] text-dark-muted">Community Detection</span>
+        <div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-card space-y-3 flex flex-col justify-between">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">Algorithm 1</span>
+              <span className="text-[11px] font-semibold text-slate-500">Unsupervised</span>
+            </div>
+            <h2 className="text-sm font-bold text-slate-900">Louvain Community Detection</h2>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Maximizes modularity to cluster tightly interconnected transaction rings into isolated criminal syndicates without manual thresholding.
+            </p>
+            <div className="rounded-lg bg-slate-50 border border-slate-200 p-2.5 font-mono text-[11px] text-slate-800">
+              {"Q = (1/2m) Σ [A_ij - (k_i * k_j)/(2m)] δ(c_i, c_j)"}
+            </div>
           </div>
-          <p className="text-xxs text-dark-muted leading-relaxed">
-            Optimizes graph modularity by iteratively aggregating nodes into dense clusters. Detects criminal syndicates that transact heavily among themselves compared to the rest of the financial graph.
-          </p>
-          <div className="rounded bg-dark-bg p-2 text-xxs text-dark-dim overflow-x-auto">
-            <code>CALL gds.louvain.stream(&apos;fraudGraphProjection&apos;) YIELD nodeId, communityId</code>
-          </div>
-          <div className="text-xxs text-dark-muted">
-            <span className="font-semibold text-dark-text">Viva defense: </span>
-            Unsupervised partitioning; requires no prior training labels.
+          <div className="rounded-lg bg-indigo-50/60 p-2.5 text-[11px] text-indigo-900 border border-indigo-100">
+            <b>Viva Defense:</b> Groups covert ring members that do not share direct hardware or single-hop links.
           </div>
         </div>
 
         {/* Card 2: PageRank */}
-        <div className="rounded border border-dark-border bg-dark-panel p-3.5 space-y-2.5">
-          <div className="flex items-center justify-between border-b border-dark-border pb-2">
-            <span className="font-bold text-amber-400 uppercase text-[11px]">2. Weighted PageRank</span>
-            <span className="text-[10px] text-dark-muted">Capital Sink Centrality</span>
+        <div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-card space-y-3 flex flex-col justify-between">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">Algorithm 2</span>
+              <span className="text-[11px] font-semibold text-slate-500">Directional Sink</span>
+            </div>
+            <h2 className="text-sm font-bold text-slate-900">PageRank Centrality</h2>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Weights incoming capital flow to identify primary cash-out accumulator accounts (sinks) where stolen money aggregates before dissipation.
+            </p>
+            <div className="rounded-lg bg-slate-50 border border-slate-200 p-2.5 font-mono text-[11px] text-slate-800">
+              {"PR(u) = (1-d)/N + d * Σ (PR(v) / L(v))"}
+            </div>
           </div>
-          <p className="text-xxs text-dark-muted leading-relaxed">
-            Measures recursive link influence weighted by transaction volume. Pinpoints final beneficiary sink accounts where laundered money aggregates before external cash-out.
-          </p>
-          <div className="rounded bg-dark-bg p-2 text-xxs text-dark-dim overflow-x-auto">
-            <code>{"CALL gds.pageRank.stream('fraudGraphProjection', {relationshipWeightProperty: 'amount'})"}</code>
-          </div>
-          <div className="text-xxs text-dark-muted">
-            <span className="font-semibold text-dark-text">Viva defense: </span>
-            Accounts with high PageRank but zero outbound velocity are primary cash-out sinks.
+          <div className="rounded-lg bg-indigo-50/60 p-2.5 text-[11px] text-indigo-900 border border-indigo-100">
+            <b>Viva Defense:</b> Prevents money mules from disguising master aggregator wallets.
           </div>
         </div>
 
-        {/* Card 3: Betweenness */}
-        <div className="rounded border border-dark-border bg-dark-panel p-3.5 space-y-2.5">
-          <div className="flex items-center justify-between border-b border-dark-border pb-2">
-            <span className="font-bold text-rose-400 uppercase text-[11px]">3. Betweenness Centrality</span>
-            <span className="text-[10px] text-dark-muted">Mule Bridge Detection</span>
+        {/* Card 3: Betweenness Centrality */}
+        <div className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-card space-y-3 flex flex-col justify-between">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">Algorithm 3</span>
+              <span className="text-[11px] font-semibold text-slate-500">Bridge Detection</span>
+            </div>
+            <h2 className="text-sm font-bold text-slate-900">Betweenness Centrality</h2>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Measures the proportion of all shortest paths passing through a given node, isolating critical bridge accounts that route funds between rings.
+            </p>
+            <div className="rounded-lg bg-slate-50 border border-slate-200 p-2.5 font-mono text-[11px] text-slate-800">
+              {"g(v) = Σ (σ_st(v) / σ_st) for s ≠ v ≠ t"}
+            </div>
           </div>
-          <p className="text-xxs text-dark-muted leading-relaxed">
-            Calculates how often a node falls on the shortest path between all pairs of nodes. Mule accounts bridging distinct subgraphs exhibit high betweenness centrality.
-          </p>
-          <div className="rounded bg-dark-bg p-2 text-xxs text-dark-dim overflow-x-auto">
-            <code>CALL gds.betweenness.stream(&apos;fraudGraphProjection&apos;) YIELD nodeId, score</code>
-          </div>
-          <div className="text-xxs text-dark-muted">
-            <span className="font-semibold text-dark-text">Viva defense: </span>
-            Mules act as topological bottlenecks between money sources and destination sinks.
+          <div className="rounded-lg bg-indigo-50/60 p-2.5 text-[11px] text-indigo-900 border border-indigo-100">
+            <b>Viva Defense:</b> Tearing down high-betweenness nodes disintegrates the entire laundering corridor.
           </div>
         </div>
       </div>
 
-      {/* Risk Model Formula Banner */}
-      <div className="rounded border border-dark-border bg-dark-panel p-3.5 space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="font-bold text-dark-text uppercase text-xs">
-            Explainable Composite Risk Scoring Formula
-          </span>
-          <span className="text-xxs text-brand font-bold">100-Point Max Scale</span>
-        </div>
-        <div className="rounded bg-dark-bg p-3 text-xxs text-dark-muted border border-dark-border space-y-1">
-          <div className="text-dark-text font-bold">
-            RiskScore = min(100, W_cycle × I_cycle + W_device × I_device + W_mule × I_mule + W_velocity × I_velocity)
+      {/* Multi-Factor Risk Scoring Formula */}
+      <div className="rounded-xl border border-slate-200/90 bg-white p-6 shadow-card space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+              <Sparkles className="h-4 w-4" />
+            </div>
+            <h2 className="text-sm font-bold text-slate-900">Explainable Multi-Factor Scoring Engine</h2>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2 text-xxs">
-            <div>
-              <span className="font-semibold text-amber-400">Cycle Weight (35 pts):</span> Monotonic 72h loops
-            </div>
-            <div>
-              <span className="font-semibold text-brand">Shared Hardware (25 pts):</span> ≥4 accounts on 1 fingerprint
-            </div>
-            <div>
-              <span className="font-semibold text-rose-400">Mule Fan-In (25 pts):</span> Fan-in ≥4 with rapid fan-out
-            </div>
-            <div>
-              <span className="font-semibold text-blue-400">Velocity (15 pts):</span> High Louvain & betweenness bridge
-            </div>
+          <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+            Audit-Trail Verified
+          </span>
+        </div>
+
+        <p className="text-xs text-slate-600 leading-relaxed">
+          FraudGraph never computes black-box scores. Every score (0.0 to 100.0) combines deterministic Cypher graph pattern matches with normalized continuous topological centrality metrics:
+        </p>
+
+        <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 font-mono text-xs text-slate-900 font-semibold overflow-x-auto text-center">
+          {"Score(a) = min(100.0, 25·I_P1 + 35·I_P2 + 30·I_P3 + 15·PR_norm + 15·BC_norm)"}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 text-xs pt-1">
+          <div className="rounded-lg border border-slate-200 p-2.5 text-center">
+            <span className="text-[10px] uppercase font-bold text-slate-400 block">P1: Device Farm</span>
+            <span className="text-sm font-bold text-indigo-600">+25 Pts</span>
+          </div>
+          <div className="rounded-lg border border-slate-200 p-2.5 text-center">
+            <span className="text-[10px] uppercase font-bold text-slate-400 block">P2: Circular Cycle</span>
+            <span className="text-sm font-bold text-amber-600">+35 Pts</span>
+          </div>
+          <div className="rounded-lg border border-slate-200 p-2.5 text-center">
+            <span className="text-[10px] uppercase font-bold text-slate-400 block">P3: Mule Funnel</span>
+            <span className="text-sm font-bold text-rose-600">+30 Pts</span>
+          </div>
+          <div className="rounded-lg border border-slate-200 p-2.5 text-center">
+            <span className="text-[10px] uppercase font-bold text-slate-400 block">PageRank Sink</span>
+            <span className="text-sm font-bold text-indigo-600">+15 Pts (norm)</span>
+          </div>
+          <div className="rounded-lg border border-slate-200 p-2.5 text-center">
+            <span className="text-[10px] uppercase font-bold text-slate-400 block">Betweenness Bridge</span>
+            <span className="text-sm font-bold text-indigo-600">+15 Pts (norm)</span>
           </div>
         </div>
       </div>

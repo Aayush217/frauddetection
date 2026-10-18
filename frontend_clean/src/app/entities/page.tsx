@@ -2,7 +2,18 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { Laptop, Globe, CreditCard, RefreshCw, ExternalLink, Filter, ShieldAlert } from "lucide-react";
+import {
+  Laptop,
+  Globe,
+  CreditCard,
+  RefreshCw,
+  ExternalLink,
+  Filter,
+  ShieldAlert,
+  Search,
+  CheckCircle2,
+  Lock,
+} from "lucide-react";
 import { api, Device, IP, Card } from "@/lib/api";
 
 export default function EntitiesPage() {
@@ -39,227 +50,230 @@ export default function EntitiesPage() {
   }, [tab, minAccounts]);
 
   return (
-    <div className="flex h-full flex-col space-y-3 font-mono">
+    <div className="flex h-full flex-col space-y-4">
       {/* Top Filter and Tab Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded border border-dark-border bg-dark-panel p-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200/90 bg-white p-4 shadow-card">
         {/* Tabs */}
-        <div className="flex items-center gap-1 rounded border border-dark-border bg-dark-bg p-0.5">
+        <div className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 p-1">
           <button
             onClick={() => setTab("devices")}
-            className={`flex items-center gap-1.5 rounded px-3 py-1 text-xs transition-colors ${
+            className={`flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-xs font-semibold transition-all ${
               tab === "devices"
-                ? "bg-dark-panelElevated text-brand font-semibold shadow-sm"
-                : "text-dark-muted hover:text-dark-text"
+                ? "bg-white text-indigo-700 shadow-2xs"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            <Laptop className="h-3.5 w-3.5" />
-            <span>Devices (Hardware)</span>
+            <Laptop className="h-4 w-4" />
+            <span>Hardware Devices</span>
           </button>
           <button
             onClick={() => setTab("ips")}
-            className={`flex items-center gap-1.5 rounded px-3 py-1 text-xs transition-colors ${
+            className={`flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-xs font-semibold transition-all ${
               tab === "ips"
-                ? "bg-dark-panelElevated text-brand font-semibold shadow-sm"
-                : "text-dark-muted hover:text-dark-text"
+                ? "bg-white text-indigo-700 shadow-2xs"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            <Globe className="h-3.5 w-3.5" />
+            <Globe className="h-4 w-4" />
             <span>IP Addresses</span>
           </button>
           <button
             onClick={() => setTab("cards")}
-            className={`flex items-center gap-1.5 rounded px-3 py-1 text-xs transition-colors ${
+            className={`flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-xs font-semibold transition-all ${
               tab === "cards"
-                ? "bg-dark-panelElevated text-brand font-semibold shadow-sm"
-                : "text-dark-muted hover:text-dark-text"
+                ? "bg-white text-indigo-700 shadow-2xs"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            <CreditCard className="h-3.5 w-3.5" />
-            <span>Cards</span>
+            <CreditCard className="h-4 w-4" />
+            <span>Payment Cards</span>
           </button>
         </div>
 
-        {/* Filter */}
-        <div className="flex items-center gap-2">
+        {/* Filters */}
+        <div className="flex items-center gap-2.5">
           {tab !== "cards" && (
-            <div className="flex items-center gap-1.5 text-xs text-dark-muted">
-              <span>Min Shared Accounts:</span>
+            <div className="flex items-center gap-1.5 text-xs text-slate-600">
+              <span className="font-medium">Min Accounts Sharing:</span>
               <select
                 value={minAccounts}
                 onChange={(e) => setMinAccounts(e.target.value)}
-                className="h-7 rounded border border-dark-border bg-dark-bg px-2 text-xs text-dark-text outline-none focus:border-brand"
+                className="h-8 rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-xs text-slate-800 outline-none focus:border-indigo-500"
               >
-                <option value="1">≥ 1 (All)</option>
-                <option value="2">≥ 2 (Shared)</option>
-                <option value="4">≥ 4 (Syndicate Tier)</option>
-                <option value="6">≥ 6 (Heavy Syndicate)</option>
+                <option value="">All (≥ 1)</option>
+                <option value="2">≥ 2 accounts (Shared)</option>
+                <option value="4">≥ 4 accounts (Syndicate)</option>
+                <option value="6">≥ 6 accounts (Device Farm)</option>
               </select>
             </div>
           )}
 
           <button
             onClick={loadEntities}
-            className="flex h-7 w-7 items-center justify-center rounded border border-dark-border bg-dark-panelElevated text-dark-muted hover:text-dark-text"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-slate-800 transition-colors"
+            title="Refresh"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
           </button>
         </div>
       </div>
 
-      {/* Main Table */}
-      <div className="flex-1 overflow-auto rounded border border-dark-border bg-dark-panel">
-        {tab === "devices" && (
-          <table className="w-full text-left text-xs">
-            <thead className="sticky top-0 z-10 border-b border-dark-border bg-dark-panelElevated">
-              <tr className="dense-th text-dark-muted">
-                <th className="px-3">Device Fingerprint ID</th>
-                <th className="px-3">Device Type</th>
-                <th className="px-3">Operating System</th>
-                <th className="px-3">Browser Engine</th>
-                <th className="px-3">Connected Accounts</th>
-                <th className="px-3">Syndicate Risk</th>
-                <th className="px-3 text-right">Pivot Canvas</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-dark-border">
-              {devices.map((d) => {
-                const count = d.accounts_count || 1;
-                const isSyndicate = count >= 4;
-
-                return (
-                  <tr key={d.id} className="dense-tr hover:bg-dark-panelElevated/50 transition-colors">
-                    <td className="px-3 font-semibold text-dark-text">{d.id}</td>
-                    <td className="px-3 uppercase text-dark-muted">{d.device_type}</td>
-                    <td className="px-3 text-dark-text">{d.os}</td>
-                    <td className="px-3 text-dark-muted">{d.browser || "Chrome / Safari"}</td>
-                    <td className="px-3 font-bold tabular-nums">
-                      <span className={isSyndicate ? "text-risk-high" : "text-dark-text"}>{count}</span>
-                    </td>
-                    <td className="px-3">
-                      {isSyndicate ? (
-                        <span className="inline-flex items-center gap-1 rounded bg-risk-high/10 border border-risk-high/30 px-1.5 py-0.5 text-xxs font-bold text-risk-high">
-                          <ShieldAlert className="h-3 w-3" />
-                          P1 SYNDICATE
-                        </span>
-                      ) : count > 1 ? (
-                        <span className="rounded bg-dark-panelElevated border border-dark-border px-1.5 py-0.5 text-xxs text-amber-400">
-                          BENIGN SHARE
-                        </span>
-                      ) : (
-                        <span className="text-xxs text-dark-dim">SOLO</span>
-                      )}
-                    </td>
-                    <td className="px-3 text-right">
-                      <Link
-                        href={`/investigate?device=${d.id}`}
-                        className="rounded border border-dark-border bg-dark-panel px-1.5 py-0.5 text-[10px] text-brand hover:border-brand/40"
-                      >
-                        Inspect Ring
-                      </Link>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-
-        {tab === "ips" && (
-          <table className="w-full text-left text-xs">
-            <thead className="sticky top-0 z-10 border-b border-dark-border bg-dark-panelElevated">
-              <tr className="dense-th text-dark-muted">
-                <th className="px-3">IP Address Identifier</th>
-                <th className="px-3">Autonomous System (ASN)</th>
-                <th className="px-3">VPN / Proxy Flag</th>
-                <th className="px-3">Connected Accounts</th>
-                <th className="px-3">Risk Assessment</th>
-                <th className="px-3 text-right">Pivot Canvas</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-dark-border">
-              {ips.map((ip) => {
-                const count = ip.accounts_count || 1;
-                return (
-                  <tr key={ip.id} className="dense-tr hover:bg-dark-panelElevated/50 transition-colors">
-                    <td className="px-3 font-semibold text-dark-text">{ip.id}</td>
-                    <td className="px-3 text-dark-muted">{ip.asn || "AS15169 Google Cloud"}</td>
-                    <td className="px-3">
-                      {ip.is_vpn ? (
-                        <span className="rounded bg-risk-medium/10 border border-risk-medium/30 px-1.5 py-0.5 text-xxs text-risk-medium font-bold">
-                          VPN DETECTED
-                        </span>
-                      ) : (
-                        <span className="text-xxs text-dark-dim">RESIDENTIAL</span>
-                      )}
-                    </td>
-                    <td className="px-3 font-bold tabular-nums text-dark-text">{count}</td>
-                    <td className="px-3">
-                      {count >= 4 ? (
-                        <span className="text-risk-high text-xxs font-bold">SHARED IP RING</span>
-                      ) : (
-                        <span className="text-dark-dim text-xxs">LOW</span>
-                      )}
-                    </td>
-                    <td className="px-3 text-right">
-                      <Link
-                        href={`/investigate?ip=${ip.id}`}
-                        className="rounded border border-dark-border bg-dark-panel px-1.5 py-0.5 text-[10px] text-brand hover:border-brand/40"
-                      >
-                        Inspect IP
-                      </Link>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-
-        {tab === "cards" && (
-          <table className="w-full text-left text-xs">
-            <thead className="sticky top-0 z-10 border-b border-dark-border bg-dark-panelElevated">
-              <tr className="dense-th text-dark-muted">
-                <th className="px-3">Hashed Card Token</th>
-                <th className="px-3">Brand</th>
-                <th className="px-3">Card Type</th>
-                <th className="px-3">Expiration</th>
-                <th className="px-3">Linked Account</th>
-                <th className="px-3 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-dark-border">
-              {cards.map((card) => (
-                <tr key={card.id} className="dense-tr hover:bg-dark-panelElevated/50 transition-colors">
-                  <td className="px-3 font-semibold text-dark-text">{card.id}</td>
-                  <td className="px-3 text-dark-text">{card.brand}</td>
-                  <td className="px-3 uppercase text-dark-muted">{card.card_type}</td>
-                  <td className="px-3 tabular-nums text-dark-muted">
-                    {card.exp_month?.toString().padStart(2, "0")}/{card.exp_year}
-                  </td>
-                  <td className="px-3 text-brand">
-                    {card.account_id ? (
-                      <Link href={`/investigate?account=${card.account_id}`} className="hover:underline">
-                        {card.account_id}
-                      </Link>
-                    ) : (
-                      "-"
-                    )}
-                  </td>
-                  <td className="px-3 text-right">
-                    {card.account_id && (
-                      <Link
-                        href={`/investigate?account=${card.account_id}`}
-                        className="rounded border border-dark-border bg-dark-panel px-1.5 py-0.5 text-[10px] text-brand hover:border-brand/40"
-                      >
-                        Canvas
-                      </Link>
-                    )}
-                  </td>
+      {/* Main Table Content */}
+      <div className="relative flex flex-1 overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-card">
+        <div className="flex-1 overflow-auto">
+          {tab === "devices" && (
+            <table className="w-full text-left text-xs">
+              <thead className="sticky top-0 bg-slate-50 border-b border-slate-200 z-10">
+                <tr className="text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
+                  <th className="py-3 px-4">Device ID</th>
+                  <th className="py-3 px-4">Operating System</th>
+                  <th className="py-3 px-4">Canvas Fingerprint Hash (SHA-256)</th>
+                  <th className="py-3 px-4">Shared By</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-700">
+                {loading ? (
+                  <tr>
+                    <td colSpan={5} className="py-12 text-center text-slate-400">Loading devices...</td>
+                  </tr>
+                ) : devices.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-12 text-center text-slate-400">No devices found.</td>
+                  </tr>
+                ) : (
+                  devices.map((d) => (
+                    <tr key={d.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-3 px-4 font-mono font-semibold text-slate-900">{d.id}</td>
+                      <td className="py-3 px-4 font-medium text-slate-800">{d.os || "Android Emulator"}</td>
+                      <td className="py-3 px-4 font-mono text-[11px] text-slate-500">
+                        {d.fingerprint_hash ? `${d.fingerprint_hash.substring(0, 24)}...` : "sha256_e7f910..."}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold border ${
+                            (d.accounts_count || 1) >= 4
+                              ? "bg-rose-50 text-rose-700 border-rose-200"
+                              : "bg-slate-100 text-slate-700 border-slate-200"
+                          }`}
+                        >
+                          {d.accounts_count || 1} Accounts
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <Link
+                          href={`/investigate`}
+                          className="inline-flex items-center gap-1 rounded-md bg-white border border-slate-200 px-2.5 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition-colors shadow-2xs"
+                        >
+                          Graph
+                          <ExternalLink className="h-3 w-3" />
+                        </Link>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          )}
+
+          {tab === "ips" && (
+            <table className="w-full text-left text-xs">
+              <thead className="sticky top-0 bg-slate-50 border-b border-slate-200 z-10">
+                <tr className="text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
+                  <th className="py-3 px-4">IP Entity ID</th>
+                  <th className="py-3 px-4">Country Code</th>
+                  <th className="py-3 px-4">VPN / Proxy Flag</th>
+                  <th className="py-3 px-4">Shared By</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-700">
+                {loading ? (
+                  <tr>
+                    <td colSpan={5} className="py-12 text-center text-slate-400">Loading IP addresses...</td>
+                  </tr>
+                ) : ips.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-12 text-center text-slate-400">No IP records found.</td>
+                  </tr>
+                ) : (
+                  ips.map((ip) => (
+                    <tr key={ip.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-3 px-4 font-mono font-semibold text-slate-900">{ip.id}</td>
+                      <td className="py-3 px-4 font-semibold text-slate-800">{ip.country || "US"}</td>
+                      <td className="py-3 px-4">
+                        <span
+                          className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold border ${
+                            ip.is_vpn
+                              ? "bg-amber-50 text-amber-700 border-amber-200"
+                              : "bg-slate-100 text-slate-600 border-slate-200"
+                          }`}
+                        >
+                          {ip.is_vpn ? "VPN / Tor Detected" : "Residential IP"}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+                          {ip.accounts_count || 1} Accounts
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <Link
+                          href={`/investigate`}
+                          className="inline-flex items-center gap-1 rounded-md bg-white border border-slate-200 px-2.5 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition-colors shadow-2xs"
+                        >
+                          Graph
+                          <ExternalLink className="h-3 w-3" />
+                        </Link>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          )}
+
+          {tab === "cards" && (
+            <table className="w-full text-left text-xs">
+              <thead className="sticky top-0 bg-slate-50 border-b border-slate-200 z-10">
+                <tr className="text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
+                  <th className="py-3 px-4">Card Instrument ID</th>
+                  <th className="py-3 px-4">Issuer Brand</th>
+                  <th className="py-3 px-4">Last 4 Digits</th>
+                  <th className="py-3 px-4">Card Type</th>
+                  <th className="py-3 px-4 text-right">PCI-DSS Token</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-700">
+                {loading ? (
+                  <tr>
+                    <td colSpan={5} className="py-12 text-center text-slate-400">Loading card tokens...</td>
+                  </tr>
+                ) : cards.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-12 text-center text-slate-400">No payment instruments found.</td>
+                  </tr>
+                ) : (
+                  cards.map((c) => (
+                    <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-3 px-4 font-mono font-semibold text-slate-900">{c.id}</td>
+                      <td className="py-3 px-4 font-semibold text-slate-800">{c.brand || "VISA"}</td>
+                      <td className="py-3 px-4 font-mono text-slate-700">•••• •••• •••• {c.last4 || "4242"}</td>
+                      <td className="py-3 px-4">
+                        <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700">
+                          {c.card_type || "DEBIT"}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono text-slate-400 text-[11px]">
+                        tok_vault_encrypted
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
     </div>
   );

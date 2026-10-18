@@ -1,18 +1,21 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
   ArrowLeftRight,
   Search,
+  Filter,
   Plus,
   RefreshCw,
-  ExternalLink,
-  X,
   CheckCircle2,
-  AlertCircle,
-  ArrowRight,
+  AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  ShieldCheck,
+  Send,
+  X,
 } from "lucide-react";
 import { api, Transaction } from "@/lib/api";
 
@@ -20,9 +23,10 @@ export default function TransfersPage() {
   const searchParams = useSearchParams();
   const [transfers, setTransfers] = useState<Transaction[]>([]);
   const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
-  const limit = 30;
+  const limit = 35;
 
   // Filters
   const [fromAccount, setFromAccount] = useState("");
@@ -31,11 +35,10 @@ export default function TransfersPage() {
 
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
-  const [newFrom, setNewFrom] = useState("ACC_000001");
-  const [newTo, setNewTo] = useState("ACC_000002");
-  const [newAmount, setNewAmount] = useState("2500");
-  const [newChannel, setNewChannel] = useState("WIRE");
-  const [newNotes, setNewNotes] = useState("Layering test payment");
+  const [newFrom, setNewFrom] = useState("acc_000001");
+  const [newTo, setNewTo] = useState("acc_000002");
+  const [newAmount, setNewAmount] = useState("4500");
+  const [newNotes, setNewNotes] = useState("Forensic simulation transfer");
   const [submitting, setSubmitting] = useState(false);
   const [modalSuccess, setModalSuccess] = useState<string | null>(null);
   const [modalError, setModalError] = useState<string | null>(null);
@@ -58,8 +61,9 @@ export default function TransfersPage() {
       });
       setTransfers(res.transfers || []);
       setTotal(res.total || 0);
+      setTotalPages(res.total_pages || 1);
     } catch (err) {
-      console.error("Failed to fetch transfers:", err);
+      console.error("Failed to load transfers:", err);
     } finally {
       setLoading(false);
     }
@@ -80,292 +84,298 @@ export default function TransfersPage() {
     setSubmitting(true);
     setModalError(null);
     setModalSuccess(null);
+
     try {
-      const res = await api.createTransfer({
+      await api.createTransfer({
         from_account_id: newFrom.trim(),
         to_account_id: newTo.trim(),
         amount: Number(newAmount),
-        channel: newChannel,
+        channel: "WIRE",
         notes: newNotes,
       });
-      setModalSuccess(`Transfer executed: ${res.id} for $${res.amount}`);
-      fetchTransfers();
+
+      setModalSuccess(`Transfer of $${Number(newAmount).toLocaleString()} committed atomically to Neo4j.`);
       setTimeout(() => {
         setModalOpen(false);
         setModalSuccess(null);
+        fetchTransfers();
       }, 1500);
     } catch (err: any) {
-      setModalError(err.message || "Transfer failed");
+      setModalError(err.message || "Failed to commit transfer");
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="flex h-full flex-col space-y-3 font-mono">
-      {/* Top Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded border border-dark-border bg-dark-panel p-2.5">
-        <div className="flex items-center gap-2">
-          <ArrowLeftRight className="h-4 w-4 text-brand" />
-          <span className="text-xs font-bold uppercase tracking-wider text-dark-text">
-            Transaction Ledger ({total.toLocaleString()} Directed Edges)
-          </span>
+    <div className="flex h-full flex-col space-y-4">
+      {/* Top Controls Toolbar */}
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200/90 bg-white p-4 shadow-card">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+            <ArrowLeftRight className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+              Network Transfers Ledger ({total.toLocaleString()} Records)
+            </h1>
+            <p className="text-xs text-slate-500">
+              Live transactional financial flow edges (:SENT) across the banking network
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <form onSubmit={handleFilterSubmit} className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <form onSubmit={handleFilterSubmit} className="flex flex-wrap items-center gap-2">
             <input
               type="text"
               value={fromAccount}
               onChange={(e) => setFromAccount(e.target.value)}
-              placeholder="From ACC_..."
-              className="h-7 w-28 rounded border border-dark-border bg-dark-bg px-2 text-xs text-dark-text outline-none focus:border-brand"
+              placeholder="Sender (acc_...)"
+              className="h-9 w-36 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-800 placeholder:text-slate-400 outline-none focus:border-indigo-500 focus:bg-white"
             />
             <input
               type="text"
               value={toAccount}
               onChange={(e) => setToAccount(e.target.value)}
-              placeholder="To ACC_..."
-              className="h-7 w-28 rounded border border-dark-border bg-dark-bg px-2 text-xs text-dark-text outline-none focus:border-brand"
+              placeholder="Receiver (acc_...)"
+              className="h-9 w-36 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-800 placeholder:text-slate-400 outline-none focus:border-indigo-500 focus:bg-white"
             />
             <input
               type="number"
               value={minAmount}
               onChange={(e) => setMinAmount(e.target.value)}
-              placeholder="Min $"
-              className="h-7 w-24 rounded border border-dark-border bg-dark-bg px-2 text-xs text-dark-text outline-none focus:border-brand"
+              placeholder="Min $ Amount"
+              className="h-9 w-28 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-800 placeholder:text-slate-400 outline-none focus:border-indigo-500 focus:bg-white"
             />
             <button
               type="submit"
-              className="h-7 rounded bg-brand/15 border border-brand/30 px-2.5 text-xs text-brand hover:bg-brand/25"
+              className="flex h-9 items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors shadow-xs"
             >
               Filter
-            </button>
-            <button
-              type="button"
-              onClick={fetchTransfers}
-              className="flex h-7 w-7 items-center justify-center rounded border border-dark-border bg-dark-panelElevated text-dark-muted hover:text-dark-text"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
             </button>
           </form>
 
           <button
             onClick={() => setModalOpen(true)}
-            className="flex h-7 items-center gap-1.5 rounded bg-brand px-3 text-xs font-medium text-dark-bg hover:bg-brand-hover"
+            className="flex h-9 items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 text-xs font-semibold text-white hover:bg-emerald-700 transition-colors shadow-xs"
           >
-            <Plus className="h-3.5 w-3.5" />
-            <span>New Transfer</span>
+            <Plus className="h-4 w-4" />
+            <span>Simulate Transfer</span>
+          </button>
+
+          <button
+            onClick={fetchTransfers}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-slate-800 transition-colors"
+            title="Refresh"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
           </button>
         </div>
       </div>
 
-      {/* Dense Ledger Table */}
-      <div className="flex-1 overflow-auto rounded border border-dark-border bg-dark-panel">
-        <table className="w-full text-left text-xs">
-          <thead className="sticky top-0 z-10 border-b border-dark-border bg-dark-panelElevated shadow-sm">
-            <tr className="dense-th text-dark-muted">
-              <th className="px-3">Transfer ID</th>
-              <th className="px-3">From Account</th>
-              <th className="px-3">To Account</th>
-              <th className="px-3">Amount (USD)</th>
-              <th className="px-3">Channel</th>
-              <th className="px-3">Timestamp (UTC)</th>
-              <th className="px-3">Notes</th>
-              <th className="px-3 text-right">Inspect</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-dark-border">
-            {transfers.length === 0 ? (
-              <tr>
-                <td colSpan={8} className="px-3 py-8 text-center text-dark-muted">
-                  {loading ? "Loading ledger..." : "No matching transactions found."}
-                </td>
+      {/* Main Ledger Table */}
+      <div className="relative flex flex-1 overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-card">
+        <div className="flex-1 overflow-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="sticky top-0 bg-slate-50 border-b border-slate-200 z-10">
+              <tr className="text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
+                <th className="py-3 px-4">Transaction ID</th>
+                <th className="py-3 px-4">Origin Account</th>
+                <th className="py-3 px-4">Destination Account</th>
+                <th className="py-3 px-4">Amount ($ USD)</th>
+                <th className="py-3 px-4">Channel</th>
+                <th className="py-3 px-4">Timestamp (UTC)</th>
+                <th className="py-3 px-4 text-right">Actions</th>
               </tr>
-            ) : (
-              transfers.map((tx) => (
-                <tr key={tx.id} className="dense-tr hover:bg-dark-panelElevated/50 transition-colors">
-                  <td className="px-3 font-semibold text-dark-text truncate max-w-[120px]">{tx.id}</td>
-                  <td className="px-3 text-brand">
-                    <Link href={`/investigate?account=${tx.from_account_id}`} className="hover:underline">
-                      {tx.from_account_id}
-                    </Link>
-                  </td>
-                  <td className="px-3 text-brand">
-                    <Link href={`/investigate?account=${tx.to_account_id}`} className="hover:underline">
-                      {tx.to_account_id}
-                    </Link>
-                  </td>
-                  <td className="px-3 font-bold text-dark-text tabular-nums">
-                    ${tx.amount?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                  </td>
-                  <td className="px-3">
-                    <span className="rounded bg-dark-panelElevated border border-dark-border px-1.5 py-0.5 text-xxs text-dark-muted">
-                      {tx.channel || "WIRE"}
-                    </span>
-                  </td>
-                  <td className="px-3 text-xxs text-dark-muted">
-                    {tx.ts ? tx.ts.replace("T", " ").slice(0, 19) : "-"}
-                  </td>
-                  <td className="px-3 text-xxs text-dark-dim truncate max-w-xs">{tx.notes || "-"}</td>
-                  <td className="px-3 text-right">
-                    <Link
-                      href={`/investigate?from=${tx.from_account_id}&to=${tx.to_account_id}`}
-                      className="rounded border border-dark-border bg-dark-panel px-1.5 py-0.5 text-[10px] text-brand hover:border-brand/40"
-                    >
-                      Canvas
-                    </Link>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-slate-700">
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+                      Loading transfer edges from graph...
+                    </div>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : transfers.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                    No transactions matching specified criteria.
+                  </td>
+                </tr>
+              ) : (
+                transfers.map((tx) => (
+                  <tr key={tx.id} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="py-3 px-4 font-mono font-semibold text-slate-900">
+                      {tx.id}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="font-mono text-xs font-medium text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded">
+                        {tx.from_account_id}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="font-mono text-xs font-medium text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded">
+                        {tx.to_account_id}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span
+                        className={`font-semibold tabular-nums ${
+                          tx.amount >= 10000 ? "text-rose-700 font-bold" : "text-slate-900"
+                        }`}
+                      >
+                        ${tx.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700">
+                        {tx.channel || "WIRE"}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 font-mono text-slate-500 text-[11px]">
+                      {tx.ts ? tx.ts.replace("T", " ").substring(0, 19) : "2026-10-18 12:00:00"}
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <a
+                        href={`/investigate?account=${tx.from_account_id}`}
+                        className="inline-flex items-center gap-1 rounded-md bg-white border border-slate-200 px-2.5 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 transition-colors shadow-2xs"
+                      >
+                        Trace
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Pagination Footer */}
-      <div className="flex items-center justify-between text-xs text-dark-muted px-1">
-        <span>
-          Showing {transfers.length} of {total.toLocaleString()} transactions
-        </span>
+      <div className="flex items-center justify-between rounded-xl border border-slate-200/90 bg-white px-4 py-3 shadow-card text-xs text-slate-600">
+        <div>
+          Showing page <span className="font-semibold text-slate-900">{page + 1}</span> of{" "}
+          <span className="font-semibold text-slate-900">{totalPages}</span> ({total.toLocaleString()} transactions)
+        </div>
         <div className="flex items-center gap-2">
           <button
+            onClick={() => setPage(Math.max(0, page - 1))}
             disabled={page === 0}
-            onClick={() => setPage((p) => Math.max(0, p - 1))}
-            className="rounded border border-dark-border bg-dark-panel px-2 py-0.5 text-dark-text hover:bg-dark-panelElevated disabled:opacity-40"
+            className="flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium hover:bg-slate-50 disabled:opacity-40 transition-colors"
           >
-            Previous
+            <ChevronLeft className="h-3.5 w-3.5" /> Previous
           </button>
-          <span>Page {page + 1}</span>
           <button
-            disabled={(page + 1) * limit >= total}
-            onClick={() => setPage((p) => p + 1)}
-            className="rounded border border-dark-border bg-dark-panel px-2 py-0.5 text-dark-text hover:bg-dark-panelElevated disabled:opacity-40"
+            onClick={() => setPage(page + 1)}
+            disabled={page + 1 >= totalPages}
+            className="flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium hover:bg-slate-50 disabled:opacity-40 transition-colors"
           >
-            Next
+            Next <ChevronRight className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
 
       {/* New Transfer Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-[2px] p-4">
-          <div className="w-full max-w-md rounded border border-dark-border bg-dark-panel p-5 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-dark-border pb-3 mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
+          <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-100">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
-                <ArrowLeftRight className="h-4 w-4 text-brand" />
-                <h2 className="text-xs font-bold uppercase tracking-wider text-dark-text">
-                  Execute Atomic Directed Transfer
-                </h2>
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                  <ArrowLeftRight className="h-4 w-4" />
+                </div>
+                <h2 className="text-sm font-bold text-slate-900">Simulate Network Transfer</h2>
               </div>
               <button
                 onClick={() => setModalOpen(false)}
-                className="rounded p-1 text-dark-muted hover:text-dark-text"
+                className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            {modalError && (
-              <div className="mb-3 flex items-center gap-2 rounded border border-risk-high/40 bg-risk-high/10 p-2 text-xxs text-risk-high">
-                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                <span>{modalError}</span>
-              </div>
-            )}
-
             {modalSuccess && (
-              <div className="mb-3 flex items-center gap-2 rounded border border-emerald-800/40 bg-emerald-950/40 p-2 text-xxs text-emerald-400">
-                <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+              <div className="mt-4 flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs font-medium text-emerald-800">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
                 <span>{modalSuccess}</span>
               </div>
             )}
 
-            <form onSubmit={handleCreateTransfer} className="space-y-3">
+            {modalError && (
+              <div className="mt-4 flex items-center gap-2 rounded-lg bg-rose-50 border border-rose-200 p-3 text-xs font-medium text-rose-800">
+                <AlertTriangle className="h-4 w-4 shrink-0 text-rose-600" />
+                <span>{modalError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleCreateTransfer} className="mt-4 space-y-3.5 text-xs">
               <div>
-                <label className="block text-xxs font-semibold uppercase text-dark-muted mb-1">
-                  Origin Account ID
-                </label>
+                <label className="block font-semibold text-slate-700 mb-1">Source Account ID</label>
                 <input
                   type="text"
                   required
                   value={newFrom}
                   onChange={(e) => setNewFrom(e.target.value)}
-                  className="w-full rounded border border-dark-border bg-dark-bg px-2.5 py-1.5 text-xs text-dark-text outline-none focus:border-brand"
+                  placeholder="e.g. acc_000001"
+                  className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-mono text-slate-800 outline-none focus:border-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xxs font-semibold uppercase text-dark-muted mb-1">
-                  Beneficiary Account ID
-                </label>
+                <label className="block font-semibold text-slate-700 mb-1">Destination Account ID</label>
                 <input
                   type="text"
                   required
                   value={newTo}
                   onChange={(e) => setNewTo(e.target.value)}
-                  className="w-full rounded border border-dark-border bg-dark-bg px-2.5 py-1.5 text-xs text-dark-text outline-none focus:border-brand"
+                  placeholder="e.g. acc_000002"
+                  className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-mono text-slate-800 outline-none focus:border-indigo-500"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xxs font-semibold uppercase text-dark-muted mb-1">
-                    Amount ($ USD)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    required
-                    value={newAmount}
-                    onChange={(e) => setNewAmount(e.target.value)}
-                    className="w-full rounded border border-dark-border bg-dark-bg px-2.5 py-1.5 text-xs text-dark-text outline-none focus:border-brand"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xxs font-semibold uppercase text-dark-muted mb-1">
-                    Channel
-                  </label>
-                  <select
-                    value={newChannel}
-                    onChange={(e) => setNewChannel(e.target.value)}
-                    className="w-full rounded border border-dark-border bg-dark-bg px-2 py-1.5 text-xs text-dark-text outline-none focus:border-brand"
-                  >
-                    <option value="WIRE">WIRE</option>
-                    <option value="ACH">ACH</option>
-                    <option value="P2P">P2P</option>
-                    <option value="ATM">ATM</option>
-                    <option value="CRYPTO">CRYPTO</option>
-                  </select>
-                </div>
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Transfer Amount ($ USD)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  required
+                  min="1"
+                  value={newAmount}
+                  onChange={(e) => setNewAmount(e.target.value)}
+                  className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500"
+                />
               </div>
 
               <div>
-                <label className="block text-xxs font-semibold uppercase text-dark-muted mb-1">
-                  Audit Notes
-                </label>
+                <label className="block font-semibold text-slate-700 mb-1">Audit Notes / Rationale</label>
                 <input
                   type="text"
                   value={newNotes}
                   onChange={(e) => setNewNotes(e.target.value)}
-                  className="w-full rounded border border-dark-border bg-dark-bg px-2.5 py-1.5 text-xs text-dark-text outline-none focus:border-brand"
+                  placeholder="Forensic simulation notes"
+                  className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs text-slate-800 outline-none focus:border-indigo-500"
                 />
               </div>
 
-              <div className="pt-2 flex justify-end gap-2">
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="rounded border border-dark-border bg-dark-panelElevated px-3 py-1.5 text-xs text-dark-muted hover:text-dark-text"
+                  className="h-9 rounded-lg border border-slate-200 px-4 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex items-center gap-1.5 rounded bg-brand px-4 py-1.5 text-xs font-semibold text-dark-bg hover:bg-brand-hover disabled:opacity-50"
+                  className="flex h-9 items-center gap-1.5 rounded-lg bg-indigo-600 px-4 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors shadow-xs disabled:opacity-50"
                 >
-                  {submitting ? "EXECUTING..." : "COMMIT TRANSFER"}
-                  <ArrowRight className="h-3.5 w-3.5" />
+                  <Send className="h-3.5 w-3.5" />
+                  <span>{submitting ? "Committing..." : "Commit Transfer"}</span>
                 </button>
               </div>
             </form>
