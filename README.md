@@ -262,9 +262,3 @@ frauddetection/
 
 ---
 
-## University Evaluation & Viva Defense Reference
-
-For academic evaluation criteria, detailed schema documentation, and answers to viva defense questions, refer to the documentation directory:
-* **Academic Evaluation Report:** [`docs/academic-evaluation-report.md`](docs/academic-evaluation-report.md)
-* **Labeled Property Graph Data Model:** [`docs/data-model.md`](docs/data-model.md)
-* **Detection Algorithms & Math:** [`docs/detection-algorithms.md`](docs/detection-algorithms.md)
