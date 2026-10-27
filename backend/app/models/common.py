@@ -30,7 +30,6 @@ class DeleteResponse(BaseModel):
     deleted_id: str
     message: str
 
-
 class MessageResponse(BaseModel):
     message: str
     detail: Optional[str] = None

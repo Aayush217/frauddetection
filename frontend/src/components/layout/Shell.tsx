@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   ShieldAlert,
   Network,
@@ -46,10 +46,18 @@ const NAV_ITEMS: NavItem[] = [
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, logout, isAdmin, loading } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // AuthGuard: redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !user && pathname !== "/login") {
+      router.replace("/login");
+    }
+  }, [user, loading, pathname, router]);
 
   // Cmd+K listener
   useEffect(() => {
@@ -80,6 +88,18 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   // Allow login page without shell
   if (pathname === "/login") {
     return <>{children}</>;
+  }
+
+  // If not authenticated, hold rendering until router redirect finishes
+  if (!user) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-slate-50 text-slate-800">
+        <div className="flex flex-col items-center gap-3 text-xs font-medium text-slate-500">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+          <span>Session unauthenticated. Redirecting to login...</span>
+        </div>
+      </div>
+    );
   }
 
   return (

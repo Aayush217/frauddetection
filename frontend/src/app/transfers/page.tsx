@@ -2,8 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import {
   ArrowLeftRight,
+  ArrowRight,
   Search,
   Filter,
   Plus,
@@ -35,13 +37,14 @@ export default function TransfersPage() {
 
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
-  const [newFrom, setNewFrom] = useState("acc_000001");
-  const [newTo, setNewTo] = useState("acc_000002");
-  const [newAmount, setNewAmount] = useState("4500");
-  const [newNotes, setNewNotes] = useState("Forensic simulation transfer");
+  const [newFrom, setNewFrom] = useState("acc_00083");
+  const [newTo, setNewTo] = useState("acc_00084");
+  const [newAmount, setNewAmount] = useState("14500");
+  const [newNotes, setNewNotes] = useState("High-value suspicious wire transfer simulation");
   const [submitting, setSubmitting] = useState(false);
   const [modalSuccess, setModalSuccess] = useState<string | null>(null);
   const [modalError, setModalError] = useState<string | null>(null);
+  const [createdResult, setCreatedResult] = useState<any>(null);
 
   useEffect(() => {
     if (searchParams.get("new") === "true") {
@@ -86,7 +89,7 @@ export default function TransfersPage() {
     setModalSuccess(null);
 
     try {
-      await api.createTransfer({
+      const res: any = await api.createTransfer({
         from_account_id: newFrom.trim(),
         to_account_id: newTo.trim(),
         amount: Number(newAmount),
@@ -94,12 +97,10 @@ export default function TransfersPage() {
         notes: newNotes,
       });
 
-      setModalSuccess(`Transfer of $${Number(newAmount).toLocaleString()} committed atomically to Neo4j.`);
-      setTimeout(() => {
-        setModalOpen(false);
-        setModalSuccess(null);
-        fetchTransfers();
-      }, 1500);
+      setCreatedResult(res);
+      const isSuspicious = res.flagged ? " [SUSPICIOUS FLAGGED]" : " [NORMAL]";
+      setModalSuccess(`Transfer ${res.transfer?.txn_id || ""} committed atomically to Neo4j${isSuspicious}.`);
+      fetchTransfers();
     } catch (err: any) {
       setModalError(err.message || "Failed to commit transfer");
     } finally {
@@ -312,6 +313,51 @@ export default function TransfersPage() {
               </div>
             )}
 
+            {/* Simulation Scenarios */}
+            <div className="mt-4 border-b border-slate-100 pb-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
+                Quick Simulation Scenarios (Existing Accounts)
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewFrom("acc_00083");
+                    setNewTo("acc_00084");
+                    setNewAmount("15000");
+                    setNewNotes("High-value suspicious wire transfer simulation");
+                  }}
+                  className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors"
+                >
+                  High-Value ($15k)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewFrom("acc_00084");
+                    setNewTo("acc_00083");
+                    setNewAmount("4500");
+                    setNewNotes("Rapid bounce-back reciprocation simulation");
+                  }}
+                  className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors"
+                >
+                  Reciprocation
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewFrom("acc_00085");
+                    setNewTo("acc_00086");
+                    setNewAmount("250");
+                    setNewNotes("Routine retail checking transfer");
+                  }}
+                  className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-100 transition-colors"
+                >
+                  Routine ($250)
+                </button>
+              </div>
+            </div>
+
             <form onSubmit={handleCreateTransfer} className="mt-4 space-y-3.5 text-xs">
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">Source Account ID</label>
@@ -320,7 +366,7 @@ export default function TransfersPage() {
                   required
                   value={newFrom}
                   onChange={(e) => setNewFrom(e.target.value)}
-                  placeholder="e.g. acc_000001"
+                  placeholder="e.g. acc_00083"
                   className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-mono text-slate-800 outline-none focus:border-indigo-500"
                 />
               </div>
@@ -332,7 +378,7 @@ export default function TransfersPage() {
                   required
                   value={newTo}
                   onChange={(e) => setNewTo(e.target.value)}
-                  placeholder="e.g. acc_000002"
+                  placeholder="e.g. acc_00084"
                   className="w-full h-9 rounded-lg border border-slate-200 px-3 text-xs font-mono text-slate-800 outline-none focus:border-indigo-500"
                 />
               </div>
@@ -361,13 +407,50 @@ export default function TransfersPage() {
                 />
               </div>
 
+              {createdResult && (
+                <div className="rounded-lg border border-indigo-100 bg-indigo-50/70 p-3 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-indigo-900">Neo4j Real-Time Evaluation:</span>
+                    <span
+                      className={`font-bold px-2 py-0.5 rounded-full text-[10px] ${
+                        createdResult.flagged
+                          ? "bg-rose-100 text-rose-800 border border-rose-300"
+                          : "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                      }`}
+                    >
+                      {createdResult.flagged ? "SUSPICIOUS FLAGGED" : "CLEAN TRANSFER"}
+                    </span>
+                  </div>
+                  {createdResult.flag_reasons?.length > 0 && (
+                    <ul className="text-[11px] text-slate-600 list-disc list-inside space-y-0.5">
+                      {createdResult.flag_reasons.map((r: string, idx: number) => (
+                        <li key={idx} className="text-rose-700 font-medium">{r}</li>
+                      ))}
+                    </ul>
+                  )}
+                  <div className="pt-1 flex items-center justify-between">
+                    <span className="font-mono text-[10px] text-slate-500">ID: {createdResult.transfer?.txn_id}</span>
+                    <Link
+                      href={`/investigate?account=${createdResult.transfer?.from_account_id}`}
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 hover:underline"
+                    >
+                      <span>Investigate in Canvas</span>
+                      <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setModalOpen(false)}
+                  onClick={() => {
+                    setModalOpen(false);
+                    setCreatedResult(null);
+                  }}
                   className="h-9 rounded-lg border border-slate-200 px-4 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors"
                 >
-                  Cancel
+                  Close
                 </button>
                 <button
                   type="submit"

@@ -102,6 +102,7 @@ class DetectionService:
             round(vol, 2) AS total_volume,
             round(dur_sec / 3600.0, 1) AS duration_hours
         ORDER BY vol DESC, hop_count ASC
+        LIMIT 50
         """
         params = {
             "window_seconds": int(window_hours * 3600),

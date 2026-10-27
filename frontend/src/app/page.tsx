@@ -307,7 +307,7 @@ export default function OverviewPage() {
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
               <h2 className="text-sm font-bold text-slate-900">Account Population Risk Distribution</h2>
-              <p className="text-xs text-slate-500">Graph centrality & behavioral risk scores ($0 \to 100$)</p>
+              <p className="text-xs text-slate-500">Graph centrality & behavioral risk scores (0 → 100)</p>
             </div>
             <Link
               href="/accounts?min_risk=70"
