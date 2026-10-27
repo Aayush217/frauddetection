@@ -1,7 +1,16 @@
+import json
+from pathlib import Path
 import pytest
 from httpx import AsyncClient
 
-from scripts.evaluate_accuracy import run_evaluation
+from scripts.evaluate_accuracy import run_evaluation, load_ground_truth
+
+
+def get_gt_metadata():
+    gt_path = Path(__file__).resolve().parent.parent / "backend" / "data" / "ground_truth.json"
+    if not gt_path.exists():
+        gt_path = Path(__file__).resolve().parent.parent / "scripts" / "ground_truth.json"
+    return load_ground_truth(gt_path)
 
 
 @pytest.mark.anyio
@@ -11,21 +20,25 @@ async def test_detection_accuracy_report():
     Ensures mathematical and algorithmic correctness for student viva.
     """
     metrics = run_evaluation()
+    gt = get_gt_metadata()
+    num_p1 = len([r for r in gt["rings"] if r["pattern"] == "P1"])
+    num_p2 = len([r for r in gt["rings"] if r["pattern"] == "P2"])
+    num_p3 = len([r for r in gt["rings"] if r["pattern"] == "P3"])
 
     # Pattern P1: Shared-device rings
     assert metrics["p1"]["recall"] >= 0.90, f"P1 Recall too low: {metrics['p1']['recall']}"
     assert metrics["p1"]["precision"] >= 0.90, f"P1 Precision too low: {metrics['p1']['precision']}"
-    assert metrics["p1"]["tp"] == 15
+    assert metrics["p1"]["tp"] == num_p1
 
     # Pattern P2: Circular money flows
     assert metrics["p2"]["recall"] >= 0.90, f"P2 Recall too low: {metrics['p2']['recall']}"
     assert metrics["p2"]["precision"] >= 0.90, f"P2 Precision too low: {metrics['p2']['precision']}"
-    assert metrics["p2"]["tp"] == 10
+    assert metrics["p2"]["tp"] == num_p2
 
     # Pattern P3: Mule account structures
     assert metrics["p3"]["recall"] >= 0.90, f"P3 Recall too low: {metrics['p3']['recall']}"
     assert metrics["p3"]["precision"] >= 0.80, f"P3 Precision too low: {metrics['p3']['precision']}"
-    assert metrics["p3"]["tp"] == 8
+    assert metrics["p3"]["tp"] == num_p3
 
 
 @pytest.mark.anyio
@@ -37,13 +50,18 @@ async def test_detection_endpoints(async_client: AsyncClient, analyst_headers: d
     - GET /api/detect/mules
     - Verifies Cypher query text is returned for student viva explanation.
     """
+    gt = get_gt_metadata()
+    num_p1 = len([r for r in gt["rings"] if r["pattern"] == "P1"])
+    num_p2 = len([r for r in gt["rings"] if r["pattern"] == "P2"])
+    num_p3 = len([r for r in gt["rings"] if r["pattern"] == "P3"])
+
     # 1. Shared Devices
     sd_resp = await async_client.get("/api/detect/shared-devices?min_accounts=4", headers=analyst_headers)
     assert sd_resp.status_code == 200
     sd_data = sd_resp.json()
     assert sd_data["pattern"] == "P1"
     assert "cypher_query" in sd_data
-    assert len(sd_data["results"]) == 15
+    assert len(sd_data["results"]) == num_p1
 
     # 2. Cycles
     cyc_resp = await async_client.get("/api/detect/cycles?min_len=3&max_len=6&window_hours=72&min_volume=1000", headers=analyst_headers)
@@ -51,7 +69,7 @@ async def test_detection_endpoints(async_client: AsyncClient, analyst_headers: d
     cyc_data = cyc_resp.json()
     assert cyc_data["pattern"] == "P2"
     assert "cypher_query" in cyc_data
-    assert len(cyc_data["results"]) == 10
+    assert len(cyc_data["results"]) == num_p2
 
     # 3. Mules
     mule_resp = await async_client.get("/api/detect/mules?min_fan_in=5&min_inflow=10000", headers=analyst_headers)
@@ -59,7 +77,7 @@ async def test_detection_endpoints(async_client: AsyncClient, analyst_headers: d
     mule_data = mule_resp.json()
     assert mule_data["pattern"] == "P3"
     assert "cypher_query" in mule_data
-    assert len(mule_data["results"]) == 8
+    assert len(mule_data["results"]) == num_p3
 
 
 @pytest.mark.anyio
@@ -80,14 +98,15 @@ async def test_gds_analysis_and_risk_scoring(async_client: AsyncClient, analyst_
     Test POST /api/analysis/run:
     Executes Louvain, PageRank, Betweenness, and computes explainable risk scores.
     """
+    gt = get_gt_metadata()
     resp = await async_client.post("/api/analysis/run", headers=analyst_headers)
     assert resp.status_code == 200
     data = resp.json()
     assert data["status"] == "completed"
     assert "metrics" in data
-    assert data["metrics"]["total_accounts_scored"] == 5000
+    assert data["metrics"]["total_accounts_scored"] == gt["metadata"]["total_accounts"]
     assert data["metrics"]["louvain_communities"] > 0
-    assert data["metrics"]["rings_detected"]["total_rings"] >= 33
+    assert data["metrics"]["rings_detected"]["total_rings"] >= len(gt["rings"])
 
 
 @pytest.mark.anyio
@@ -98,11 +117,12 @@ async def test_rings_and_analyst_review_workflow(async_client: AsyncClient, anal
     - Analyst marks ring as 'confirmed'
     - Verifies review state propagates to member accounts
     """
+    gt = get_gt_metadata()
     # List rings
     rings_resp = await async_client.get("/api/rings", headers=analyst_headers)
     assert rings_resp.status_code == 200
     rings = rings_resp.json()
-    assert len(rings) >= 33
+    assert len(rings) >= len(gt["rings"])
 
     target_ring = rings[0]
     ring_id = target_ring["id"]

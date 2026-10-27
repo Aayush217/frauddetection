@@ -1,10 +1,10 @@
 {
   "metadata": {
-    "generated_at": "2026-10-17T15:28:31.410214+00:00",
+    "generated_at": "2026-10-27T21:42:20.267209+00:00",
     "scale": 1.0,
     "seed": 42,
-    "total_accounts": 5000,
-    "total_normal_transactions": 20000
+    "total_accounts": 100,
+    "total_normal_transactions": 150
   },
   "rings": [
     {
@@ -44,57 +44,101 @@
       "type": "shared_device",
       "device_id": "dev_syndicate_003",
       "ip_id": "ip_syndicate_003",
-      "member_count": 6,
+      "member_count": 4,
       "member_account_ids": [
         "acc_00010",
         "acc_00011",
         "acc_00012",
-        "acc_00013",
+        "acc_00013"
+      ],
+      "description": "Syndicate of 4 accounts accessing via shared device dev_syndicate_003"
+    },
+    {
+      "ring_id": "ring_cf_01",
+      "pattern": "P2",
+      "type": "cycle",
+      "hop_count": 4,
+      "duration_hours": 24.0,
+      "initial_amount": 19510.83,
+      "final_amount": 18033.31,
+      "member_account_ids": [
         "acc_00014",
-        "acc_00015"
-      ],
-      "description": "Syndicate of 6 accounts accessing via shared device dev_syndicate_003"
-    },
-    {
-      "ring_id": "ring_sd_04",
-      "pattern": "P1",
-      "type": "shared_device",
-      "device_id": "dev_syndicate_004",
-      "ip_id": "ip_syndicate_004",
-      "member_count": 4,
-      "member_account_ids": [
+        "acc_00015",
         "acc_00016",
-        "acc_00017",
-        "acc_00018",
-        "acc_00019"
+        "acc_00017"
       ],
-      "description": "Syndicate of 4 accounts accessing via shared device dev_syndicate_004"
+      "txn_ids": [
+        "txn_ring_cf_01_hop1",
+        "txn_ring_cf_01_hop2",
+        "txn_ring_cf_01_hop3",
+        "txn_ring_cf_01_hop4"
+      ],
+      "description": "Closed loop money cycle of 4 hops totaling ~$19,510.83 within 24.0h"
     },
     {
-      "ring_id": "ring_sd_05",
-      "pattern": "P1",
-      "type": "shared_device",
-      "device_id": "dev_syndicate_005",
-      "ip_id": "ip_syndicate_005",
-      "member_count": 5,
+      "ring_id": "ring_cf_02",
+      "pattern": "P2",
+      "type": "cycle",
+      "hop_count": 4,
+      "duration_hours": 53.8,
+      "initial_amount": 32722.3,
+      "final_amount": 30056.29,
       "member_account_ids": [
+        "acc_00018",
+        "acc_00019",
         "acc_00020",
-        "acc_00021",
+        "acc_00021"
+      ],
+      "txn_ids": [
+        "txn_ring_cf_02_hop1",
+        "txn_ring_cf_02_hop2",
+        "txn_ring_cf_02_hop3",
+        "txn_ring_cf_02_hop4"
+      ],
+      "description": "Closed loop money cycle of 4 hops totaling ~$32,722.30 within 53.8h"
+    },
+    {
+      "ring_id": "ring_cf_03",
+      "pattern": "P2",
+      "type": "cycle",
+      "hop_count": 4,
+      "duration_hours": 25.0,
+      "initial_amount": 28485.01,
+      "final_amount": 26302.63,
+      "member_account_ids": [
         "acc_00022",
         "acc_00023",
-        "acc_00024"
+        "acc_00024",
+        "acc_00025"
       ],
-      "description": "Syndicate of 5 accounts accessing via shared device dev_syndicate_005"
+      "txn_ids": [
+        "txn_ring_cf_03_hop1",
+        "txn_ring_cf_03_hop2",
+        "txn_ring_cf_03_hop3",
+        "txn_ring_cf_03_hop4"
+      ],
+      "description": "Closed loop money cycle of 4 hops totaling ~$28,485.01 within 25.0h"
     },
     {
-      "ring_id": "ring_sd_06",
-      "pattern": "P1",
-      "type": "shared_device",
-      "device_id": "dev_syndicate_006",
-      "ip_id": "ip_syndicate_006",
-      "member_count": 9,
+      "ring_id": "ring_mule_01",
+      "pattern": "P3",
+      "type": "mule",
+      "mule_account_id": "acc_00026",
+      "feeder_account_ids": [
+        "acc_00027",
+        "acc_00028",
+        "acc_00029",
+        "acc_00030",
+        "acc_00031"
+      ],
+      "sink_account_ids": [
+        "acc_00032",
+        "acc_00033"
+      ],
+      "total_inflow": 18049.86,
+      "fan_in_count": 5,
+      "fan_out_count": 2,
       "member_account_ids": [
-        "acc_00025",
         "acc_00026",
         "acc_00027",
         "acc_00028",
@@ -104,665 +148,36 @@
         "acc_00032",
         "acc_00033"
       ],
-      "description": "Syndicate of 9 accounts accessing via shared device dev_syndicate_006"
-    },
-    {
-      "ring_id": "ring_sd_07",
-      "pattern": "P1",
-      "type": "shared_device",
-      "device_id": "dev_syndicate_007",
-      "ip_id": "ip_syndicate_007",
-      "member_count": 5,
-      "member_account_ids": [
-        "acc_00034",
-        "acc_00035",
-        "acc_00036",
-        "acc_00037",
-        "acc_00038"
-      ],
-      "description": "Syndicate of 5 accounts accessing via shared device dev_syndicate_007"
-    },
-    {
-      "ring_id": "ring_sd_08",
-      "pattern": "P1",
-      "type": "shared_device",
-      "device_id": "dev_syndicate_008",
-      "ip_id": "ip_syndicate_008",
-      "member_count": 6,
-      "member_account_ids": [
-        "acc_00039",
-        "acc_00040",
-        "acc_00041",
-        "acc_00042",
-        "acc_00043",
-        "acc_00044"
-      ],
-      "description": "Syndicate of 6 accounts accessing via shared device dev_syndicate_008"
-    },
-    {
-      "ring_id": "ring_sd_09",
-      "pattern": "P1",
-      "type": "shared_device",
-      "device_id": "dev_syndicate_009",
-      "ip_id": "ip_syndicate_009",
-      "member_count": 4,
-      "member_account_ids": [
-        "acc_00045",
-        "acc_00046",
-        "acc_00047",
-        "acc_00048"
-      ],
-      "description": "Syndicate of 4 accounts accessing via shared device dev_syndicate_009"
-    },
-    {
-      "ring_id": "ring_sd_10",
-      "pattern": "P1",
-      "type": "shared_device",
-      "device_id": "dev_syndicate_010",
-      "ip_id": "ip_syndicate_010",
-      "member_count": 6,
-      "member_account_ids": [
-        "acc_00049",
-        "acc_00050",
-        "acc_00051",
-        "acc_00052",
-        "acc_00053",
-        "acc_00054"
-      ],
-      "description": "Syndicate of 6 accounts accessing via shared device dev_syndicate_010"
-    },
-    {
-      "ring_id": "ring_sd_11",
-      "pattern": "P1",
-      "type": "shared_device",
-      "device_id": "dev_syndicate_011",
-      "ip_id": "ip_syndicate_011",
-      "member_count": 5,
-      "member_account_ids": [
-        "acc_00055",
-        "acc_00056",
-        "acc_00057",
-        "acc_00058",
-        "acc_00059"
-      ],
-      "description": "Syndicate of 5 accounts accessing via shared device dev_syndicate_011"
-    },
-    {
-      "ring_id": "ring_sd_12",
-      "pattern": "P1",
-      "type": "shared_device",
-      "device_id": "dev_syndicate_012",
-      "ip_id": "ip_syndicate_012",
-      "member_count": 4,
-      "member_account_ids": [
-        "acc_00060",
-        "acc_00061",
-        "acc_00062",
-        "acc_00063"
-      ],
-      "description": "Syndicate of 4 accounts accessing via shared device dev_syndicate_012"
-    },
-    {
-      "ring_id": "ring_sd_13",
-      "pattern": "P1",
-      "type": "shared_device",
-      "device_id": "dev_syndicate_013",
-      "ip_id": "ip_syndicate_013",
-      "member_count": 7,
-      "member_account_ids": [
-        "acc_00064",
-        "acc_00065",
-        "acc_00066",
-        "acc_00067",
-        "acc_00068",
-        "acc_00069",
-        "acc_00070"
-      ],
-      "description": "Syndicate of 7 accounts accessing via shared device dev_syndicate_013"
-    },
-    {
-      "ring_id": "ring_sd_14",
-      "pattern": "P1",
-      "type": "shared_device",
-      "device_id": "dev_syndicate_014",
-      "ip_id": "ip_syndicate_014",
-      "member_count": 5,
-      "member_account_ids": [
-        "acc_00071",
-        "acc_00072",
-        "acc_00073",
-        "acc_00074",
-        "acc_00075"
-      ],
-      "description": "Syndicate of 5 accounts accessing via shared device dev_syndicate_014"
-    },
-    {
-      "ring_id": "ring_sd_15",
-      "pattern": "P1",
-      "type": "shared_device",
-      "device_id": "dev_syndicate_015",
-      "ip_id": "ip_syndicate_015",
-      "member_count": 7,
-      "member_account_ids": [
-        "acc_00076",
-        "acc_00077",
-        "acc_00078",
-        "acc_00079",
-        "acc_00080",
-        "acc_00081",
-        "acc_00082"
-      ],
-      "description": "Syndicate of 7 accounts accessing via shared device dev_syndicate_015"
-    },
-    {
-      "ring_id": "ring_cf_01",
-      "pattern": "P2",
-      "type": "cycle",
-      "hop_count": 6,
-      "duration_hours": 49.3,
-      "initial_amount": 10271.92,
-      "final_amount": 9180.61,
-      "member_account_ids": [
-        "acc_00083",
-        "acc_00084",
-        "acc_00085",
-        "acc_00086",
-        "acc_00087",
-        "acc_00088"
-      ],
-      "txn_ids": [
-        "txn_ring_cf_01_hop1",
-        "txn_ring_cf_01_hop2",
-        "txn_ring_cf_01_hop3",
-        "txn_ring_cf_01_hop4",
-        "txn_ring_cf_01_hop5",
-        "txn_ring_cf_01_hop6"
-      ],
-      "description": "Closed loop money cycle of 6 hops totaling ~$10,271.92 within 49.3h"
-    },
-    {
-      "ring_id": "ring_cf_02",
-      "pattern": "P2",
-      "type": "cycle",
-      "hop_count": 3,
-      "duration_hours": 23.6,
-      "initial_amount": 22131.15,
-      "final_amount": 21023.15,
-      "member_account_ids": [
-        "acc_00089",
-        "acc_00090",
-        "acc_00091"
-      ],
-      "txn_ids": [
-        "txn_ring_cf_02_hop1",
-        "txn_ring_cf_02_hop2",
-        "txn_ring_cf_02_hop3"
-      ],
-      "description": "Closed loop money cycle of 3 hops totaling ~$22,131.15 within 23.6h"
-    },
-    {
-      "ring_id": "ring_cf_03",
-      "pattern": "P2",
-      "type": "cycle",
-      "hop_count": 6,
-      "duration_hours": 60.5,
-      "initial_amount": 24282.74,
-      "final_amount": 21635.19,
-      "member_account_ids": [
-        "acc_00092",
-        "acc_00093",
-        "acc_00094",
-        "acc_00095",
-        "acc_00096",
-        "acc_00097"
-      ],
-      "txn_ids": [
-        "txn_ring_cf_03_hop1",
-        "txn_ring_cf_03_hop2",
-        "txn_ring_cf_03_hop3",
-        "txn_ring_cf_03_hop4",
-        "txn_ring_cf_03_hop5",
-        "txn_ring_cf_03_hop6"
-      ],
-      "description": "Closed loop money cycle of 6 hops totaling ~$24,282.74 within 60.5h"
-    },
-    {
-      "ring_id": "ring_cf_04",
-      "pattern": "P2",
-      "type": "cycle",
-      "hop_count": 5,
-      "duration_hours": 66.5,
-      "initial_amount": 28397.61,
-      "final_amount": 26263.12,
-      "member_account_ids": [
-        "acc_00098",
-        "acc_00099",
-        "acc_00100",
-        "acc_00101",
-        "acc_00102"
-      ],
-      "txn_ids": [
-        "txn_ring_cf_04_hop1",
-        "txn_ring_cf_04_hop2",
-        "txn_ring_cf_04_hop3",
-        "txn_ring_cf_04_hop4",
-        "txn_ring_cf_04_hop5"
-      ],
-      "description": "Closed loop money cycle of 5 hops totaling ~$28,397.61 within 66.5h"
-    },
-    {
-      "ring_id": "ring_cf_05",
-      "pattern": "P2",
-      "type": "cycle",
-      "hop_count": 5,
-      "duration_hours": 27.8,
-      "initial_amount": 22131.37,
-      "final_amount": 20432.68,
-      "member_account_ids": [
-        "acc_00103",
-        "acc_00104",
-        "acc_00105",
-        "acc_00106",
-        "acc_00107"
-      ],
-      "txn_ids": [
-        "txn_ring_cf_05_hop1",
-        "txn_ring_cf_05_hop2",
-        "txn_ring_cf_05_hop3",
-        "txn_ring_cf_05_hop4",
-        "txn_ring_cf_05_hop5"
-      ],
-      "description": "Closed loop money cycle of 5 hops totaling ~$22,131.37 within 27.8h"
-    },
-    {
-      "ring_id": "ring_cf_06",
-      "pattern": "P2",
-      "type": "cycle",
-      "hop_count": 3,
-      "duration_hours": 13.7,
-      "initial_amount": 24301.4,
-      "final_amount": 23165.44,
-      "member_account_ids": [
-        "acc_00108",
-        "acc_00109",
-        "acc_00110"
-      ],
-      "txn_ids": [
-        "txn_ring_cf_06_hop1",
-        "txn_ring_cf_06_hop2",
-        "txn_ring_cf_06_hop3"
-      ],
-      "description": "Closed loop money cycle of 3 hops totaling ~$24,301.40 within 13.7h"
-    },
-    {
-      "ring_id": "ring_cf_07",
-      "pattern": "P2",
-      "type": "cycle",
-      "hop_count": 3,
-      "duration_hours": 18.1,
-      "initial_amount": 23923.69,
-      "final_amount": 22649.03,
-      "member_account_ids": [
-        "acc_00111",
-        "acc_00112",
-        "acc_00113"
-      ],
-      "txn_ids": [
-        "txn_ring_cf_07_hop1",
-        "txn_ring_cf_07_hop2",
-        "txn_ring_cf_07_hop3"
-      ],
-      "description": "Closed loop money cycle of 3 hops totaling ~$23,923.69 within 18.1h"
-    },
-    {
-      "ring_id": "ring_cf_08",
-      "pattern": "P2",
-      "type": "cycle",
-      "hop_count": 3,
-      "duration_hours": 40.1,
-      "initial_amount": 10540.96,
-      "final_amount": 10035.31,
-      "member_account_ids": [
-        "acc_00114",
-        "acc_00115",
-        "acc_00116"
-      ],
-      "txn_ids": [
-        "txn_ring_cf_08_hop1",
-        "txn_ring_cf_08_hop2",
-        "txn_ring_cf_08_hop3"
-      ],
-      "description": "Closed loop money cycle of 3 hops totaling ~$10,540.96 within 40.1h"
-    },
-    {
-      "ring_id": "ring_cf_09",
-      "pattern": "P2",
-      "type": "cycle",
-      "hop_count": 5,
-      "duration_hours": 60.4,
-      "initial_amount": 19305.39,
-      "final_amount": 17737.86,
-      "member_account_ids": [
-        "acc_00117",
-        "acc_00118",
-        "acc_00119",
-        "acc_00120",
-        "acc_00121"
-      ],
-      "txn_ids": [
-        "txn_ring_cf_09_hop1",
-        "txn_ring_cf_09_hop2",
-        "txn_ring_cf_09_hop3",
-        "txn_ring_cf_09_hop4",
-        "txn_ring_cf_09_hop5"
-      ],
-      "description": "Closed loop money cycle of 5 hops totaling ~$19,305.39 within 60.4h"
-    },
-    {
-      "ring_id": "ring_cf_10",
-      "pattern": "P2",
-      "type": "cycle",
-      "hop_count": 3,
-      "duration_hours": 29.2,
-      "initial_amount": 29826.48,
-      "final_amount": 28157.49,
-      "member_account_ids": [
-        "acc_00122",
-        "acc_00123",
-        "acc_00124"
-      ],
-      "txn_ids": [
-        "txn_ring_cf_10_hop1",
-        "txn_ring_cf_10_hop2",
-        "txn_ring_cf_10_hop3"
-      ],
-      "description": "Closed loop money cycle of 3 hops totaling ~$29,826.48 within 29.2h"
-    },
-    {
-      "ring_id": "ring_mule_01",
-      "pattern": "P3",
-      "type": "mule",
-      "mule_account_id": "acc_00125",
-      "feeder_account_ids": [
-        "acc_00126",
-        "acc_00127",
-        "acc_00128",
-        "acc_00129",
-        "acc_00130",
-        "acc_00131",
-        "acc_00132",
-        "acc_00133",
-        "acc_00134"
-      ],
-      "sink_account_ids": [
-        "acc_00135",
-        "acc_00136"
-      ],
-      "total_inflow": 29683.04,
-      "fan_in_count": 9,
-      "fan_out_count": 2,
-      "member_account_ids": [
-        "acc_00125",
-        "acc_00126",
-        "acc_00127",
-        "acc_00128",
-        "acc_00129",
-        "acc_00130",
-        "acc_00131",
-        "acc_00132",
-        "acc_00133",
-        "acc_00134",
-        "acc_00135",
-        "acc_00136"
-      ],
-      "description": "Mule acc_00125: 9 deposits in, rapid transfer to 2 sinks within 3h"
+      "description": "Mule acc_00026: 5 deposits in, rapid transfer to 2 sinks within 3h"
     },
     {
       "ring_id": "ring_mule_02",
       "pattern": "P3",
       "type": "mule",
-      "mule_account_id": "acc_00137",
+      "mule_account_id": "acc_00034",
       "feeder_account_ids": [
-        "acc_00138",
-        "acc_00139",
-        "acc_00140",
-        "acc_00141",
-        "acc_00142"
+        "acc_00035",
+        "acc_00036",
+        "acc_00037",
+        "acc_00038",
+        "acc_00039"
       ],
       "sink_account_ids": [
-        "acc_00143"
+        "acc_00040"
       ],
-      "total_inflow": 14712.48,
+      "total_inflow": 17360.78,
       "fan_in_count": 5,
       "fan_out_count": 1,
       "member_account_ids": [
-        "acc_00137",
-        "acc_00138",
-        "acc_00139",
-        "acc_00140",
-        "acc_00141",
-        "acc_00142",
-        "acc_00143"
+        "acc_00034",
+        "acc_00035",
+        "acc_00036",
+        "acc_00037",
+        "acc_00038",
+        "acc_00039",
+        "acc_00040"
       ],
-      "description": "Mule acc_00137: 5 deposits in, rapid transfer to 1 sinks within 3h"
-    },
-    {
-      "ring_id": "ring_mule_03",
-      "pattern": "P3",
-      "type": "mule",
-      "mule_account_id": "acc_00144",
-      "feeder_account_ids": [
-        "acc_00145",
-        "acc_00146",
-        "acc_00147",
-        "acc_00148",
-        "acc_00149",
-        "acc_00150",
-        "acc_00151",
-        "acc_00152",
-        "acc_00153",
-        "acc_00154",
-        "acc_00155"
-      ],
-      "sink_account_ids": [
-        "acc_00156",
-        "acc_00157"
-      ],
-      "total_inflow": 31248.65,
-      "fan_in_count": 11,
-      "fan_out_count": 2,
-      "member_account_ids": [
-        "acc_00144",
-        "acc_00145",
-        "acc_00146",
-        "acc_00147",
-        "acc_00148",
-        "acc_00149",
-        "acc_00150",
-        "acc_00151",
-        "acc_00152",
-        "acc_00153",
-        "acc_00154",
-        "acc_00155",
-        "acc_00156",
-        "acc_00157"
-      ],
-      "description": "Mule acc_00144: 11 deposits in, rapid transfer to 2 sinks within 3h"
-    },
-    {
-      "ring_id": "ring_mule_04",
-      "pattern": "P3",
-      "type": "mule",
-      "mule_account_id": "acc_00158",
-      "feeder_account_ids": [
-        "acc_00159",
-        "acc_00160",
-        "acc_00161",
-        "acc_00162",
-        "acc_00163",
-        "acc_00164"
-      ],
-      "sink_account_ids": [
-        "acc_00165"
-      ],
-      "total_inflow": 20239.19,
-      "fan_in_count": 6,
-      "fan_out_count": 1,
-      "member_account_ids": [
-        "acc_00158",
-        "acc_00159",
-        "acc_00160",
-        "acc_00161",
-        "acc_00162",
-        "acc_00163",
-        "acc_00164",
-        "acc_00165"
-      ],
-      "description": "Mule acc_00158: 6 deposits in, rapid transfer to 1 sinks within 3h"
-    },
-    {
-      "ring_id": "ring_mule_05",
-      "pattern": "P3",
-      "type": "mule",
-      "mule_account_id": "acc_00166",
-      "feeder_account_ids": [
-        "acc_00167",
-        "acc_00168",
-        "acc_00169",
-        "acc_00170",
-        "acc_00171",
-        "acc_00172",
-        "acc_00173",
-        "acc_00174"
-      ],
-      "sink_account_ids": [
-        "acc_00175",
-        "acc_00176"
-      ],
-      "total_inflow": 21689.6,
-      "fan_in_count": 8,
-      "fan_out_count": 2,
-      "member_account_ids": [
-        "acc_00166",
-        "acc_00167",
-        "acc_00168",
-        "acc_00169",
-        "acc_00170",
-        "acc_00171",
-        "acc_00172",
-        "acc_00173",
-        "acc_00174",
-        "acc_00175",
-        "acc_00176"
-      ],
-      "description": "Mule acc_00166: 8 deposits in, rapid transfer to 2 sinks within 3h"
-    },
-    {
-      "ring_id": "ring_mule_06",
-      "pattern": "P3",
-      "type": "mule",
-      "mule_account_id": "acc_00177",
-      "feeder_account_ids": [
-        "acc_00178",
-        "acc_00179",
-        "acc_00180",
-        "acc_00181",
-        "acc_00182"
-      ],
-      "sink_account_ids": [
-        "acc_00183"
-      ],
-      "total_inflow": 16910.79,
-      "fan_in_count": 5,
-      "fan_out_count": 1,
-      "member_account_ids": [
-        "acc_00177",
-        "acc_00178",
-        "acc_00179",
-        "acc_00180",
-        "acc_00181",
-        "acc_00182",
-        "acc_00183"
-      ],
-      "description": "Mule acc_00177: 5 deposits in, rapid transfer to 1 sinks within 3h"
-    },
-    {
-      "ring_id": "ring_mule_07",
-      "pattern": "P3",
-      "type": "mule",
-      "mule_account_id": "acc_00184",
-      "feeder_account_ids": [
-        "acc_00185",
-        "acc_00186",
-        "acc_00187",
-        "acc_00188",
-        "acc_00189",
-        "acc_00190"
-      ],
-      "sink_account_ids": [
-        "acc_00191",
-        "acc_00192",
-        "acc_00193"
-      ],
-      "total_inflow": 16583.86,
-      "fan_in_count": 6,
-      "fan_out_count": 3,
-      "member_account_ids": [
-        "acc_00184",
-        "acc_00185",
-        "acc_00186",
-        "acc_00187",
-        "acc_00188",
-        "acc_00189",
-        "acc_00190",
-        "acc_00191",
-        "acc_00192",
-        "acc_00193"
-      ],
-      "description": "Mule acc_00184: 6 deposits in, rapid transfer to 3 sinks within 3h"
-    },
-    {
-      "ring_id": "ring_mule_08",
-      "pattern": "P3",
-      "type": "mule",
-      "mule_account_id": "acc_00194",
-      "feeder_account_ids": [
-        "acc_00195",
-        "acc_00196",
-        "acc_00197",
-        "acc_00198",
-        "acc_00199",
-        "acc_00200",
-        "acc_00201",
-        "acc_00202",
-        "acc_00203",
-        "acc_00204",
-        "acc_00205",
-        "acc_00206"
-      ],
-      "sink_account_ids": [
-        "acc_00207"
-      ],
-      "total_inflow": 34792.15,
-      "fan_in_count": 12,
-      "fan_out_count": 1,
-      "member_account_ids": [
-        "acc_00194",
-        "acc_00195",
-        "acc_00196",
-        "acc_00197",
-        "acc_00198",
-        "acc_00199",
-        "acc_00200",
-        "acc_00201",
-        "acc_00202",
-        "acc_00203",
-        "acc_00204",
-        "acc_00205",
-        "acc_00206",
-        "acc_00207"
-      ],
-      "description": "Mule acc_00194: 12 deposits in, rapid transfer to 1 sinks within 3h"
+      "description": "Mule acc_00034: 5 deposits in, rapid transfer to 1 sinks within 3h"
     }
   ]
 }

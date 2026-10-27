@@ -35,10 +35,9 @@ export default function TransfersPage() {
   const [toAccount, setToAccount] = useState("");
   const [minAmount, setMinAmount] = useState<string>("");
 
-  // Modal State
   const [modalOpen, setModalOpen] = useState(false);
-  const [newFrom, setNewFrom] = useState("acc_00083");
-  const [newTo, setNewTo] = useState("acc_00084");
+  const [newFrom, setNewFrom] = useState("acc_00001");
+  const [newTo, setNewTo] = useState("acc_00002");
   const [newAmount, setNewAmount] = useState("14500");
   const [newNotes, setNewNotes] = useState("High-value suspicious wire transfer simulation");
   const [submitting, setSubmitting] = useState(false);
@@ -241,7 +240,7 @@ export default function TransfersPage() {
                     </td>
                     <td className="py-3 px-4 text-right">
                       <a
-                        href={`/investigate?account=${tx.from_account_id}`}
+                        href={`/investigate?txn=${tx.txn_id}&from=${tx.from_account_id}&to=${tx.to_account_id}&amount=${tx.amount}`}
                         className="inline-flex items-center gap-1 rounded-md bg-white border border-slate-200 px-2.5 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 transition-colors shadow-2xs"
                       >
                         Trace
@@ -322,8 +321,8 @@ export default function TransfersPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    setNewFrom("acc_00083");
-                    setNewTo("acc_00084");
+                    setNewFrom("acc_00001");
+                    setNewTo("acc_00002");
                     setNewAmount("15000");
                     setNewNotes("High-value suspicious wire transfer simulation");
                   }}
@@ -334,8 +333,8 @@ export default function TransfersPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    setNewFrom("acc_00084");
-                    setNewTo("acc_00083");
+                    setNewFrom("acc_00002");
+                    setNewTo("acc_00001");
                     setNewAmount("4500");
                     setNewNotes("Rapid bounce-back reciprocation simulation");
                   }}
@@ -346,8 +345,8 @@ export default function TransfersPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    setNewFrom("acc_00085");
-                    setNewTo("acc_00086");
+                    setNewFrom("acc_00050");
+                    setNewTo("acc_00051");
                     setNewAmount("250");
                     setNewNotes("Routine retail checking transfer");
                   }}

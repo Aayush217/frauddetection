@@ -109,17 +109,17 @@ def run_generator(scale: float = 1.0, reset: bool = False, seed: int = 42, outpu
     now = datetime.now(timezone.utc)
     start_history = now - timedelta(days=60)
 
-    num_accounts = max(50, int(5000 * scale))
-    num_users = int(num_accounts * 0.85)
-    num_devices = int(num_accounts * 1.05)
-    num_ips = int(num_accounts * 0.55)
-    num_cards = int(num_accounts * 0.75)
-    num_normal_txns = max(200, int(20000 * scale))
+    num_accounts = max(60, int(100 * scale))
+    num_users = int(num_accounts * 0.80)
+    num_devices = int(num_accounts * 0.70)
+    num_ips = max(20, int(num_accounts * 0.40))
+    num_cards = max(15, int(num_accounts * 0.35))
+    num_normal_txns = max(60, int(150 * scale))
 
-    # Calculate number of fraud rings scaled
-    num_sd_rings = max(2, int(15 * scale))
-    num_cf_rings = max(2, int(10 * scale))
-    num_mule_rings = max(2, int(8 * scale))
+    # Calculate number of fraud rings scaled (default 8 rings: 3 SD, 3 CF, 2 Mule)
+    num_sd_rings = max(2, int(3 * scale))
+    num_cf_rings = max(2, int(3 * scale))
+    num_mule_rings = max(2, int(2 * scale))
 
     logger.info(
         f"Target counts: {num_accounts} accounts, {num_users} users, {num_devices} devices, "
@@ -235,16 +235,18 @@ def run_generator(scale: float = 1.0, reset: bool = False, seed: int = 42, outpu
     dev_cursor = 0
     acc_cursor = 0
 
-    # Create 150 benign shared devices (household/office noise with 2 or 3 accounts each)
-    num_benign = int(150 * scale)
+    # Create benign shared devices (household/office noise with 2 accounts each)
+    num_benign = max(1, int(3 * scale))
+    benign_acc_start = min(40, max(0, len(account_ids) - (num_benign * 2) - 1))
+    acc_cursor = benign_acc_start
+
     for _ in range(num_benign):
-        if acc_cursor + 3 >= len(account_ids) - 300:
+        if acc_cursor + 2 > len(account_ids):
             break
-        dev_id = devices[dev_cursor]["id"]
+        dev_id = devices[dev_cursor % len(devices)]["id"]
         dev_cursor += 1
-        share_size = rng.choice([2, 3])
-        group = account_ids[acc_cursor : acc_cursor + share_size]
-        acc_cursor += share_size
+        group = account_ids[acc_cursor : acc_cursor + 2]
+        acc_cursor += 2
 
         for acc_id in group:
             first = (now - timedelta(days=rng.randint(15, 60))).isoformat()
@@ -257,9 +259,10 @@ def run_generator(scale: float = 1.0, reset: bool = False, seed: int = 42, outpu
             })
 
     # Remaining accounts get individual 1-to-1 devices
-    while acc_cursor < len(account_ids):
-        acc_id = account_ids[acc_cursor]
-        acc_cursor += 1
+    linked_accounts = {link["account_id"] for link in device_links}
+    for acc_id in account_ids:
+        if acc_id in linked_accounts:
+            continue
         dev_id = devices[dev_cursor % len(devices)]["id"]
         dev_cursor += 1
         first = (now - timedelta(days=rng.randint(10, 100))).isoformat()
@@ -373,25 +376,6 @@ def run_generator(scale: float = 1.0, reset: bool = False, seed: int = 42, outpu
     """
     batch_insert(insert_paid_with_query, card_links)
 
-    # -------------------------------------------------------------
-    # 6. Generate Normal Transactions (Diurnal Pattern)
-    # -------------------------------------------------------------
-    logger.info(f"Generating {num_normal_txns} Normal Transactions with diurnal curve...")
-    # Sample normal background transactions from non-fraud accounts (accounts 300 onwards)
-    normal_account_pool = account_ids[300:]
-    normal_txns = []
-    for i in range(num_normal_txns):
-        src, dst = rng.sample(normal_account_pool, 2)
-        amount = generate_realistic_amount(rng)
-        ts = generate_diurnal_timestamp(start_history, now, rng).isoformat()
-        normal_txns.append({
-            "txn_id": f"txn_norm_{i+1:07d}",
-            "from_account_id": src,
-            "to_account_id": dst,
-            "amount": amount,
-            "ts": ts,
-        })
-
     insert_sent_query = """
     UNWIND $batch AS t
     MATCH (src:Account {id: t.from_account_id})
@@ -402,10 +386,9 @@ def run_generator(scale: float = 1.0, reset: bool = False, seed: int = 42, outpu
         ts: t.ts
     }]->(dst)
     """
-    batch_insert(insert_sent_query, normal_txns)
 
     # -------------------------------------------------------------
-    # 7. Inject Labeled Fraud Rings & Save Ground Truth
+    # 6. Inject Labeled Fraud Rings & Prepare Ground Truth
     # -------------------------------------------------------------
     ground_truth = {
         "metadata": {
@@ -421,7 +404,7 @@ def run_generator(scale: float = 1.0, reset: bool = False, seed: int = 42, outpu
     fraud_account_pool_idx = 0
 
     # -------------------------------------------------------------
-    # P1: Shared-device / Shared-IP Rings (15 rings, 4-10 accounts each)
+    # P1: Shared-device / Shared-IP Rings (4-5 accounts each)
     # -------------------------------------------------------------
     logger.info(f"Injecting {num_sd_rings} Shared-Device Rings (Pattern P1)...")
     sd_device_links = []
@@ -432,7 +415,7 @@ def run_generator(scale: float = 1.0, reset: bool = False, seed: int = 42, outpu
 
     for ring_num in range(num_sd_rings):
         ring_id = f"ring_sd_{ring_num+1:02d}"
-        cluster_size = rng.randint(4, 10)
+        cluster_size = rng.choice([4, 5])
         member_accs = account_ids[fraud_account_pool_idx : fraud_account_pool_idx + cluster_size]
         fraud_account_pool_idx += cluster_size
 
@@ -501,20 +484,20 @@ def run_generator(scale: float = 1.0, reset: bool = False, seed: int = 42, outpu
     batch_insert(insert_sent_query, sd_txns)
 
     # -------------------------------------------------------------
-    # P2: Circular Money Flow Rings (10 rings, 3-6 hops, within 72 hours)
+    # P2: Circular Money Flow Rings (3-4 hops, within 72 hours)
     # -------------------------------------------------------------
     logger.info(f"Injecting {num_cf_rings} Circular-Flow Rings (Pattern P2)...")
     cf_txns = []
 
     for ring_num in range(num_cf_rings):
         ring_id = f"ring_cf_{ring_num+1:02d}"
-        hops = rng.randint(3, 6)
+        hops = rng.choice([3, 4])
         member_accs = account_ids[fraud_account_pool_idx : fraud_account_pool_idx + hops]
         fraud_account_pool_idx += hops
 
         # Start time for cycle
         cycle_start_time = now - timedelta(days=rng.randint(2, 20), hours=rng.randint(0, 23))
-        # Initial laundering sum (e.g. $10,000 to $45,000)
+        # Initial laundering sum (e.g. $10,000 to $35,000)
         curr_amount = round(rng.uniform(8500.0, 35000.0), 2)
         total_cycle_volume = curr_amount
 
@@ -557,15 +540,15 @@ def run_generator(scale: float = 1.0, reset: bool = False, seed: int = 42, outpu
     batch_insert(insert_sent_query, cf_txns)
 
     # -------------------------------------------------------------
-    # P3: Mule Accounts (8 rings, high fan-in, short dwell, rapid fan-out)
+    # P3: Mule Accounts (high fan-in, short dwell, rapid fan-out)
     # -------------------------------------------------------------
     logger.info(f"Injecting {num_mule_rings} Mule Account Structures (Pattern P3)...")
     mule_txns = []
 
     for ring_num in range(num_mule_rings):
         ring_id = f"ring_mule_{ring_num+1:02d}"
-        fan_in_count = rng.randint(5, 12)
-        fan_out_count = rng.randint(1, 3)
+        fan_in_count = 5
+        fan_out_count = rng.choice([1, 2])
 
         mule_acc = account_ids[fraud_account_pool_idx]
         fraud_account_pool_idx += 1
@@ -581,7 +564,7 @@ def run_generator(scale: float = 1.0, reset: bool = False, seed: int = 42, outpu
 
         # High fan-in: multiple feeders deposit within 12 hours
         for idx, feeder in enumerate(feeders):
-            dep_amount = round(rng.uniform(1200.0, 4800.0), 2)
+            dep_amount = round(rng.uniform(2200.0, 4200.0), 2)
             total_inflow += dep_amount
             deposit_time = mule_time_base + timedelta(hours=idx * rng.uniform(0.5, 1.5))
             mule_txns.append({
@@ -624,6 +607,30 @@ def run_generator(scale: float = 1.0, reset: bool = False, seed: int = 42, outpu
         })
 
     batch_insert(insert_sent_query, mule_txns)
+
+    # -------------------------------------------------------------
+    # 7. Generate Normal Background Transactions
+    # -------------------------------------------------------------
+    logger.info(f"Generating {num_normal_txns} Normal Transactions with diurnal curve...")
+    # Sample normal background transactions from non-fraud accounts (accounts after fraud_account_pool_idx)
+    normal_account_pool = account_ids[fraud_account_pool_idx:]
+    if len(normal_account_pool) < 2:
+        normal_account_pool = account_ids
+
+    normal_txns = []
+    for i in range(num_normal_txns):
+        src, dst = rng.sample(normal_account_pool, 2)
+        amount = generate_realistic_amount(rng)
+        ts = generate_diurnal_timestamp(start_history, now, rng).isoformat()
+        normal_txns.append({
+            "txn_id": f"txn_norm_{i+1:07d}",
+            "from_account_id": src,
+            "to_account_id": dst,
+            "amount": amount,
+            "ts": ts,
+        })
+
+    batch_insert(insert_sent_query, normal_txns)
 
     # -------------------------------------------------------------
     # 8. Save Ground Truth File
