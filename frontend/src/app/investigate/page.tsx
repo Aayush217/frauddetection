@@ -22,6 +22,7 @@ import {
   Search,
   Filter,
   ShieldAlert,
+  ShieldCheck,
   ArrowRight,
   RefreshCw,
   X,
@@ -35,28 +36,53 @@ import {
   Copy,
   Check,
   ExternalLink,
+  Layers,
+  ChevronDown,
+  ChevronUp,
+  HelpCircle,
 } from "lucide-react";
 import { api } from "@/lib/api";
 
 // Custom Light-Theme Account Node
 function AccountNodeComponent({ data, selected }: { data: any; selected: boolean }) {
-  const score = data.risk_score || 0;
+  const score = data.risk_score !== undefined ? data.risk_score : 35;
   const isHighRisk = score >= 70;
-  const isMediumRisk = score >= 40;
+  const isMediumRisk = score >= 40 && score < 70;
 
   const borderColor = isHighRisk
-    ? "border-rose-400"
+    ? "border-rose-400 bg-rose-50/20"
     : isMediumRisk
-    ? "border-amber-400"
-    : "border-slate-200";
+    ? "border-amber-400 bg-amber-50/30"
+    : "border-slate-200 bg-white";
 
   const glowClass = selected ? "ring-2 ring-indigo-600 ring-offset-2" : "";
 
   return (
     <div
-      className={`relative min-w-[140px] rounded-xl border bg-white p-3 shadow-card hover:shadow-cardHover transition-all ${borderColor} ${glowClass}`}
+      className={`relative min-w-[160px] rounded-xl border p-3 shadow-card hover:shadow-cardHover transition-all ${borderColor} ${glowClass}`}
     >
       <Handle type="target" position={Position.Top} className="!bg-indigo-600 !h-2 !w-2 !border-white" />
+      
+      {/* Entity Classification Tag */}
+      <div className="mb-2">
+        {isHighRisk ? (
+          <span className="inline-flex items-center gap-1 rounded bg-rose-100/90 text-rose-800 text-[9px] font-extrabold px-1.5 py-0.5 tracking-wider uppercase border border-rose-200">
+            <span className="h-1.5 w-1.5 rounded-full bg-rose-600 animate-pulse" />
+            🔴 HIGH RISK ACCOUNT
+          </span>
+        ) : isMediumRisk ? (
+          <span className="inline-flex items-center gap-1 rounded bg-amber-100/90 text-amber-800 text-[9px] font-extrabold px-1.5 py-0.5 tracking-wider uppercase border border-amber-300">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-600" />
+            🟡 MEDIUM RISK (YELLOW)
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 rounded bg-emerald-100/90 text-emerald-800 text-[9px] font-extrabold px-1.5 py-0.5 tracking-wider uppercase border border-emerald-200">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+            🟢 NORMAL ACCOUNT
+          </span>
+        )}
+      </div>
+
       <div className="flex items-center justify-between gap-1.5 mb-1.5">
         <span className="font-mono text-xs font-bold text-slate-900 truncate">{data.label}</span>
         <span
@@ -67,10 +93,18 @@ function AccountNodeComponent({ data, selected }: { data: any; selected: boolean
               ? "bg-amber-50 text-amber-700 border border-amber-200"
               : "bg-emerald-50 text-emerald-700 border border-emerald-200"
           }`}
+          title={`Risk Score: ${score}/100`}
         >
           {score}
         </span>
       </div>
+
+      {data.role && (
+        <div className="text-[10px] text-slate-500 font-semibold mb-1">
+          Role: <span className="text-slate-800">{data.role}</span>
+        </div>
+      )}
+
       <div className="text-[11px] text-slate-500 flex justify-between tabular-nums border-t border-slate-100 pt-1">
         <span>Balance:</span>
         <span className="text-slate-800 font-semibold">
@@ -82,62 +116,89 @@ function AccountNodeComponent({ data, selected }: { data: any; selected: boolean
   );
 }
 
-// Custom Light-Theme Device Node
+// Custom Light-Theme Device Node (Purple)
 function DeviceNodeComponent({ data, selected }: { data: any; selected: boolean }) {
   return (
     <div
-      className={`min-w-[130px] rounded-xl border border-indigo-200 bg-indigo-50/90 p-3 shadow-card ${
+      className={`min-w-[150px] rounded-xl border border-indigo-200 bg-indigo-50/90 p-3 shadow-card ${
         selected ? "ring-2 ring-indigo-600 ring-offset-2" : ""
       }`}
     >
       <Handle type="target" position={Position.Top} className="!bg-indigo-500 !h-2 !w-2 !border-white" />
-      <div className="flex items-center gap-1.5 text-indigo-900 mb-1">
-        <Laptop className="h-3.5 w-3.5 text-indigo-600" />
+      
+      {/* Classification Tag */}
+      <div className="mb-1.5">
+        <span className="inline-flex items-center gap-1 rounded bg-indigo-100 text-indigo-800 text-[9px] font-extrabold px-1.5 py-0.5 tracking-wider uppercase border border-indigo-200">
+          <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" />
+          🟣 HARDWARE DEVICE (PURPLE)
+        </span>
+      </div>
+
+      <div className="flex items-center gap-1.5 text-indigo-950 mb-1">
+        <Laptop className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
         <span className="font-mono text-xs font-bold truncate">{data.label}</span>
       </div>
       <div className="text-[10px] font-semibold text-indigo-700 uppercase tracking-wider">
-        {data.device_type || "HARDWARE"}
+        {data.device_type || "Client Terminal"}
       </div>
       <Handle type="source" position={Position.Bottom} className="!bg-indigo-500 !h-2 !w-2 !border-white" />
     </div>
   );
 }
 
-// Custom Light-Theme IP Node
+// Custom Light-Theme IP Node (Blue)
 function IPNodeComponent({ data, selected }: { data: any; selected: boolean }) {
   return (
     <div
-      className={`min-w-[120px] rounded-xl border border-sky-200 bg-sky-50/90 p-3 shadow-card ${
+      className={`min-w-[150px] rounded-xl border border-sky-200 bg-sky-50/90 p-3 shadow-card ${
         selected ? "ring-2 ring-sky-600 ring-offset-2" : ""
       }`}
     >
       <Handle type="target" position={Position.Top} className="!bg-sky-500 !h-2 !w-2 !border-white" />
-      <div className="flex items-center gap-1.5 text-sky-900 mb-1">
-        <Globe className="h-3.5 w-3.5 text-sky-600" />
+      
+      {/* Classification Tag */}
+      <div className="mb-1.5">
+        <span className="inline-flex items-center gap-1 rounded bg-sky-100 text-sky-800 text-[9px] font-extrabold px-1.5 py-0.5 tracking-wider uppercase border border-sky-200">
+          <span className="h-1.5 w-1.5 rounded-full bg-sky-600" />
+          🔵 IP ADDRESS (BLUE)
+        </span>
+      </div>
+
+      <div className="flex items-center gap-1.5 text-sky-950 mb-1">
+        <Globe className="h-3.5 w-3.5 text-sky-600 shrink-0" />
         <span className="font-mono text-xs font-bold truncate">{data.label}</span>
       </div>
       <div className="text-[10px] font-semibold text-sky-700">
-        Country: {data.country || "US"}
+        Country: {data.country || "US"} · Gateway
       </div>
       <Handle type="source" position={Position.Bottom} className="!bg-sky-500 !h-2 !w-2 !border-white" />
     </div>
   );
 }
 
-// Custom Light-Theme User Node
+// Custom Light-Theme User Node (Green)
 function UserNodeComponent({ data, selected }: { data: any; selected: boolean }) {
   return (
     <div
-      className={`min-w-[130px] rounded-xl border border-emerald-200 bg-emerald-50/90 p-3 shadow-card ${
+      className={`min-w-[150px] rounded-xl border border-emerald-200 bg-emerald-50/90 p-3 shadow-card ${
         selected ? "ring-2 ring-emerald-600 ring-offset-2" : ""
       }`}
     >
       <Handle type="target" position={Position.Top} className="!bg-emerald-500 !h-2 !w-2 !border-white" />
-      <div className="flex items-center gap-1.5 text-emerald-900 mb-1">
-        <User className="h-3.5 w-3.5 text-emerald-600" />
+      
+      {/* Classification Tag */}
+      <div className="mb-1.5">
+        <span className="inline-flex items-center gap-1 rounded bg-emerald-100 text-emerald-800 text-[9px] font-extrabold px-1.5 py-0.5 tracking-wider uppercase border border-emerald-200">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+          🟢 LEGAL OWNER (GREEN)
+        </span>
+      </div>
+
+      <div className="flex items-center gap-1.5 text-emerald-950 mb-1">
+        <User className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
         <span className="text-xs font-bold truncate">{data.label}</span>
       </div>
-      <div className="text-[10px] font-mono text-emerald-700 truncate">{data.user_id || "LEGAL_OWNER"}</div>
+      <div className="text-[10px] font-mono text-emerald-700 truncate">{data.user_id || "Customer Entity"}</div>
       <Handle type="source" position={Position.Bottom} className="!bg-emerald-500 !h-2 !w-2 !border-white" />
     </div>
   );
@@ -154,6 +215,7 @@ export default function InvestigatePage() {
   const [copied, setCopied] = useState(false);
   const [searchTarget, setSearchTarget] = useState("");
   const [activePreset, setActivePreset] = useState<string | null>("p1");
+  const [legendOpen, setLegendOpen] = useState(true);
 
   const nodeTypes = useMemo(
     () => ({
@@ -651,6 +713,126 @@ export default function InvestigatePage() {
       <div className="relative flex flex-1 overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-card">
         {/* React Flow Canvas */}
         <div className="flex-1 h-full w-full relative">
+          {/* Floating Graph Color & Entity Legend */}
+          <div className="absolute top-4 left-4 z-10 max-w-xs transition-all">
+            <div className="rounded-xl border border-slate-200/90 bg-white/95 backdrop-blur-md shadow-card overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setLegendOpen(!legendOpen)}
+                className="flex w-full items-center justify-between px-3.5 py-2.5 text-xs font-bold text-slate-800 hover:bg-slate-50 transition-colors border-b border-slate-100"
+              >
+                <div className="flex items-center gap-2">
+                  <HelpCircle className="h-4 w-4 text-indigo-600" />
+                  <span>Graph Legend & Color Guide</span>
+                </div>
+                {legendOpen ? (
+                  <ChevronUp className="h-4 w-4 text-slate-400" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-slate-400" />
+                )}
+              </button>
+
+              {legendOpen && (
+                <div className="p-3 space-y-2 text-[11px] max-h-[420px] overflow-y-auto">
+                  <div className="font-semibold text-slate-400 uppercase tracking-wider text-[10px]">
+                    Node Entities & Meaning
+                  </div>
+
+                  {/* Yellow Node explanation */}
+                  <div className="flex items-start gap-2 p-2 rounded-lg bg-amber-50/70 border border-amber-200/80">
+                    <span className="h-3 w-3 rounded-full bg-amber-400 shrink-0 mt-0.5 shadow-2xs" />
+                    <div>
+                      <div className="font-bold text-amber-950">🟡 Yellow: Medium-Risk Account (40–69)</div>
+                      <div className="text-amber-800/90 leading-tight mt-0.5">
+                        Bank account with elevated risk score (e.g. 50/100). Highlighted yellow due to rapid transaction velocity or high-risk ring proximity.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Blue Node explanation */}
+                  <div className="flex items-start gap-2 p-2 rounded-lg bg-sky-50/70 border border-sky-200/80">
+                    <span className="h-3 w-3 rounded-full bg-sky-500 shrink-0 mt-0.5 shadow-2xs" />
+                    <div>
+                      <div className="font-bold text-sky-950">🔵 Blue: IP Address (:IP)</div>
+                      <div className="text-sky-800/90 leading-tight mt-0.5">
+                        Network gateway & ISP exit geolocation. Connected via <code className="font-mono text-[10px]">:LOGGED_FROM</code> when an account logs in.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Purple Node explanation */}
+                  <div className="flex items-start gap-2 p-2 rounded-lg bg-indigo-50/70 border border-indigo-200/80">
+                    <span className="h-3 w-3 rounded-full bg-indigo-500 shrink-0 mt-0.5 shadow-2xs" />
+                    <div>
+                      <div className="font-bold text-indigo-950">🟣 Purple: Hardware Device (:Device)</div>
+                      <div className="text-indigo-800/90 leading-tight mt-0.5">
+                        Physical client terminal (iOS, Android, macOS). Multiple accounts sharing one purple node indicates synthetic fraud (P1).
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Green Node explanation */}
+                  <div className="flex items-start gap-2 p-2 rounded-lg bg-emerald-50/70 border border-emerald-200/80">
+                    <span className="h-3 w-3 rounded-full bg-emerald-500 shrink-0 mt-0.5 shadow-2xs" />
+                    <div>
+                      <div className="font-bold text-emerald-950">🟢 Green: Legal Owner (:User)</div>
+                      <div className="text-emerald-800/90 leading-tight mt-0.5">
+                        Verified KYC customer entity holding legal ownership (<code className="font-mono text-[10px]">:OWNS</code>) of the bank account.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Red Node explanation */}
+                  <div className="flex items-start gap-2 p-2 rounded-lg bg-rose-50/70 border border-rose-200/80">
+                    <span className="h-3 w-3 rounded-full bg-rose-500 shrink-0 mt-0.5 shadow-2xs" />
+                    <div>
+                      <div className="font-bold text-rose-950">🔴 Red: High-Risk Account (70–100)</div>
+                      <div className="text-rose-800/90 leading-tight mt-0.5">
+                        Critical fraud suspect or money mule participating in circular flows or layering schemes.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Normal / Low-Risk Node explanation */}
+                  <div className="flex items-start gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200">
+                    <span className="h-3 w-3 rounded-full bg-slate-400 shrink-0 mt-0.5 shadow-2xs" />
+                    <div>
+                      <div className="font-bold text-slate-800">⚪ White: Low-Risk Account (&lt; 40)</div>
+                      <div className="text-slate-600 leading-tight mt-0.5">
+                        Routine account with standard transaction patterns and baseline risk score.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Relationships section */}
+                  <div className="pt-2 border-t border-slate-100">
+                    <div className="font-semibold text-slate-400 uppercase tracking-wider text-[10px] mb-1">
+                      Relationship Edges
+                    </div>
+                    <div className="space-y-1 text-slate-600">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono text-[10px] font-bold text-amber-600 bg-amber-50 px-1 rounded border border-amber-200">:SENT</span>
+                        <span>Dashed orange arrow: Fund transfer & $ volume</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1 rounded border border-indigo-200">:USED_DEVICE</span>
+                        <span>Hardware authentication session</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono text-[10px] font-bold text-sky-600 bg-sky-50 px-1 rounded border border-sky-200">:LOGGED_FROM</span>
+                        <span>Internet IP gateway connection</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1 rounded border border-emerald-200">:OWNS</span>
+                        <span>Customer legal account ownership</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -715,6 +897,59 @@ export default function InvestigatePage() {
                   {selectedElement.type || selectedElement.data?.label || "EDGE"}
                 </span>
               </div>
+            </div>
+
+            {/* Entity Role & Color Explanation Card */}
+            <div className="rounded-xl border border-indigo-100 bg-indigo-50/40 p-3 text-xs space-y-1.5">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 flex items-center gap-1">
+                <Info className="h-3.5 w-3.5" />
+                <span>Entity Role & Color Guide</span>
+              </div>
+              
+              {selectedElement.type === "account" && (
+                <div className="text-slate-700 leading-relaxed text-[11px]">
+                  {selectedElement.data?.risk_score >= 70 ? (
+                    <span>
+                      <strong className="text-rose-700 font-bold">🔴 High-Risk Node (Red):</strong> Risk score is{" "}
+                      <strong className="font-mono font-bold text-rose-700">{selectedElement.data?.risk_score}/100</strong>. This bank account is colored red because it is implicated in fraud patterns such as circular transaction laundering or multi-account hardware sharing.
+                    </span>
+                  ) : selectedElement.data?.risk_score >= 40 ? (
+                    <span>
+                      <strong className="text-amber-800 font-bold">🟡 Medium-Risk Node (Yellow):</strong> Risk score is{" "}
+                      <strong className="font-mono font-bold text-amber-800">{selectedElement.data?.risk_score}/100</strong>. This bank account is colored yellow because it exhibits elevated velocity, unusual transaction sizes, or indirect ties to suspicious entities.
+                    </span>
+                  ) : (
+                    <span>
+                      <strong className="text-emerald-800 font-bold">🟢 Low-Risk Node (White/Green):</strong> Risk score is{" "}
+                      <strong className="font-mono font-bold text-emerald-800">{selectedElement.data?.risk_score ?? 35}/100</strong>. Routine verified bank account operating within normal behavioral bounds.
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {selectedElement.type === "device" && (
+                <div className="text-slate-700 leading-relaxed text-[11px]">
+                  <strong className="text-indigo-800 font-bold">🟣 Physical Device (Purple):</strong> Hardware fingerprint ({selectedElement.data?.device_type || "Mobile/Desktop terminal"}). When multiple accounts share this exact purple node, it reveals a Shared-Hardware Fraud Ring.
+                </div>
+              )}
+
+              {selectedElement.type === "ip" && (
+                <div className="text-slate-700 leading-relaxed text-[11px]">
+                  <strong className="text-sky-800 font-bold">🔵 IP Address (Blue):</strong> Network gateway / ISP exit location ({selectedElement.data?.country || "US"}). Captured via <code className="font-mono text-[10px]">:LOGGED_FROM</code> during account access.
+                </div>
+              )}
+
+              {selectedElement.type === "user" && (
+                <div className="text-slate-700 leading-relaxed text-[11px]">
+                  <strong className="text-emerald-800 font-bold">🟢 Legal Owner (Green):</strong> KYC customer profile ({selectedElement.data?.label || selectedElement.id}). Legally owns (<code className="font-mono text-[10px]">:OWNS</code>) the connected bank accounts.
+                </div>
+              )}
+
+              {selectedElement.type === "edge" && (
+                <div className="text-slate-700 leading-relaxed text-[11px]">
+                  <strong className="text-indigo-800 font-bold">🔗 Topological Relationship:</strong> Connects entities in Neo4j to model monetary flows, hardware sharing, or ownership links.
+                </div>
+              )}
             </div>
 
             {selectedElement.data && (
