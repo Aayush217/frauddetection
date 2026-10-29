@@ -464,45 +464,46 @@ export default function InvestigatePage() {
         }
         return;
       }
+
+      // Direct fallback
+      const srcId = fromId || "acc_00001";
+      const dstId = toId || "acc_00002";
+      const amt = amount ? Number(amount) : 12500;
+
+      const fallbackNodes: Node[] = [
+        {
+          id: srcId,
+          type: "account",
+          position: { x: 180, y: 240 },
+          data: { label: srcId, risk_score: 85, balance: 25000, role: "Sender (Origin)" },
+        },
+        {
+          id: dstId,
+          type: "account",
+          position: { x: 620, y: 240 },
+          data: { label: dstId, risk_score: 80, balance: 32000, role: "Receiver (Destination)" },
+        },
+      ];
+
+      const fallbackEdges: Edge[] = [
+        {
+          id: `tx-${txnId}`,
+          source: srcId,
+          target: dstId,
+          label: `:SENT ($${amt.toLocaleString()})`,
+          animated: true,
+          style: { stroke: "#4F46E5", strokeWidth: 3 },
+        },
+      ];
+
+      setNodes(fallbackNodes);
+      setEdges(fallbackEdges);
+      setCypherQuery(`MATCH (src:Account {id: '${srcId}'})-[r:SENT {txn_id: '${txnId}'}]->(dst:Account {id: '${dstId}'}) RETURN src, r, dst`);
     } catch (err: any) {
       console.warn("Backend trace failed, falling back to direct topology:", err);
+    } finally {
+      setLoading(false);
     }
-
-    // Direct fallback
-    const srcId = fromId || "acc_00001";
-    const dstId = toId || "acc_00002";
-    const amt = amount ? Number(amount) : 12500;
-
-    const fallbackNodes: Node[] = [
-      {
-        id: srcId,
-        type: "account",
-        position: { x: 180, y: 240 },
-        data: { label: srcId, risk_score: 85, balance: 25000, role: "Sender (Origin)" },
-      },
-      {
-        id: dstId,
-        type: "account",
-        position: { x: 620, y: 240 },
-        data: { label: dstId, risk_score: 80, balance: 32000, role: "Receiver (Destination)" },
-      },
-    ];
-
-    const fallbackEdges: Edge[] = [
-      {
-        id: `tx-${txnId}`,
-        source: srcId,
-        target: dstId,
-        label: `:SENT ($${amt.toLocaleString()})`,
-        animated: true,
-        style: { stroke: "#4F46E5", strokeWidth: 3 },
-      },
-    ];
-
-    setNodes(fallbackNodes);
-    setEdges(fallbackEdges);
-    setCypherQuery(`MATCH (src:Account {id: '${srcId}'})-[r:SENT {txn_id: '${txnId}'}]->(dst:Account {id: '${dstId}'}) RETURN src, r, dst`);
-    setLoading(false);
   };
 
   const handleTraceBetweenAccounts = async (fromId: string, toId: string) => {
@@ -531,19 +532,20 @@ export default function InvestigatePage() {
         setCypherQuery(res.cypher_query);
         return;
       }
+
+      setNodes([
+        { id: fromId, type: "account", position: { x: 200, y: 240 }, data: { label: fromId, risk_score: 50, balance: 25000 } },
+        { id: toId, type: "account", position: { x: 600, y: 240 }, data: { label: toId, risk_score: 50, balance: 28000 } },
+      ]);
+      setEdges([
+        { id: `direct-${fromId}-${toId}`, source: fromId, target: toId, label: ":SENT", animated: true, style: { stroke: "#4F46E5", strokeWidth: 2 } },
+      ]);
+      setCypherQuery(`MATCH (src:Account {id: '${fromId}'})-[r:SENT]->(dst:Account {id: '${toId}'}) RETURN src, r, dst`);
     } catch (e) {
       console.warn("Shortest path discovery failed:", e);
+    } finally {
+      setLoading(false);
     }
-
-    setNodes([
-      { id: fromId, type: "account", position: { x: 200, y: 240 }, data: { label: fromId, risk_score: 50, balance: 25000 } },
-      { id: toId, type: "account", position: { x: 600, y: 240 }, data: { label: toId, risk_score: 50, balance: 28000 } },
-    ]);
-    setEdges([
-      { id: `direct-${fromId}-${toId}`, source: fromId, target: toId, label: ":SENT", animated: true, style: { stroke: "#4F46E5", strokeWidth: 2 } },
-    ]);
-    setCypherQuery(`MATCH (src:Account {id: '${fromId}'})-[r:SENT]->(dst:Account {id: '${toId}'}) RETURN src, r, dst`);
-    setLoading(false);
   };
 
   const handleSearchAccountGraph = async (accId: string) => {
@@ -559,17 +561,23 @@ export default function InvestigatePage() {
         setCypherQuery(res.cypher_query || `MATCH (a:Account {id: '${accId}'})-[r]-(n) RETURN a, r, n`);
         return;
       }
+
+      // Single account fallback
+      setNodes([
+        { id: accId, type: "account", position: { x: 380, y: 220 }, data: { label: accId, risk_score: 75, balance: 24000 } },
+      ]);
+      setEdges([]);
+      setCypherQuery(`MATCH (a:Account {id: '${accId}'}) OPTIONAL MATCH (a)-[r]-(n) RETURN a, r, n`);
     } catch (err: any) {
       console.warn(`Could not load live subgraph for ${accId}:`, err);
+      setNodes([
+        { id: accId, type: "account", position: { x: 380, y: 220 }, data: { label: accId, risk_score: 75, balance: 24000 } },
+      ]);
+      setEdges([]);
+      setCypherQuery(`MATCH (a:Account {id: '${accId}'}) OPTIONAL MATCH (a)-[r]-(n) RETURN a, r, n`);
+    } finally {
+      setLoading(false);
     }
-
-    // Single account fallback
-    setNodes([
-      { id: accId, type: "account", position: { x: 380, y: 220 }, data: { label: accId, risk_score: 75, balance: 24000 } },
-    ]);
-    setEdges([]);
-    setCypherQuery(`MATCH (a:Account {id: '${accId}'}) OPTIONAL MATCH (a)-[r]-(n) RETURN a, r, n`);
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -857,11 +865,9 @@ export default function InvestigatePage() {
           </ReactFlow>
 
           {loading && (
-            <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/70 backdrop-blur-2xs">
-              <div className="flex items-center gap-2 rounded-xl bg-white border border-slate-200 p-4 shadow-elevated text-xs font-semibold text-slate-800">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
-                Querying Neo4j Subgraph...
-              </div>
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 rounded-full bg-white/95 backdrop-blur-md border border-indigo-200 px-4 py-2 shadow-elevated text-xs font-semibold text-slate-800 animate-in fade-in duration-150">
+              <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+              <span>Querying Neo4j Subgraph...</span>
             </div>
           )}
         </div>
